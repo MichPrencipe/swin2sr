@@ -2,8 +2,7 @@ import os
 import numpy as np
 import torch
 from data_loader.read_mrc import read_mrc
-from torch.utils.data import Dataset
-from skimage import io
+from torch.utils.data import Dataset, random_split
 
 class BioSRDataset(Dataset):
     
