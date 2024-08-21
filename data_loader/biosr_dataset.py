@@ -3,7 +3,14 @@ import numpy as np
 import torch
 from data_loader.read_mrc import read_mrc
 from torch.utils.data import Dataset
-from skimage import io
+from skimage.transform import resize
+
+def downscale(data, shape):
+    """
+    HXWXC -> H/2 x W/2 x C
+    """
+    new_shape = (*shape, data.shape[-1])
+    return resize(data, new_shape)
 
 class BioSRDataset(Dataset):
     
