@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import torch
-from data_loader.read_mrc import read_mrc
+from swin2sr.data_loader.read_mrc import read_mrc
 from torch.utils.data import Dataset
 from skimage.transform import resize
 
@@ -12,7 +12,7 @@ def downscale(data, shape):
     new_shape = (*shape, data.shape[-1])
     return resize(data, new_shape)
 
-class BioSRDataset(Dataset):
+class BioSRDataLoader(Dataset):
     
     """Dataset class to load images from MRC files in multiple folders."""
     def __init__(self, root_dir, patch_size=64, transform=None, resize_to_shape=None):
