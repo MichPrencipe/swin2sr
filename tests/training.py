@@ -112,7 +112,7 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
         # Compute average loss for the epoch
         epoch_loss = running_loss / len(train_loader)
         print(f'Epoch {epoch+1}/{num_epochs}, Loss: {epoch_loss:.4f}')
-        wandb.log({"loss": loss})
+        wandb.log({"loss": epoch_loss})
         
         # Validation loop (optional but recommended)
         model.eval()  # Set model to evaluation mode
