@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import torch
-from swin2sr.data_loader.read_mrc import read_mrc
+from data_loader.read_mrc import read_mrc
 from torch.utils.data import Dataset
 from skimage.transform import resize
 

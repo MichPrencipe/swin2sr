@@ -8,13 +8,13 @@ import glob
 import pytorch_lightning as pl
 import wandb
 from pytorch_lightning.loggers import TensorBoardLogger, WandbLogger
-from swin2sr.data_loader.biosr_dataset import BioSRDataLoader
+from data_loader.biosr_dataset import BioSRDataLoader
 
-from swin2sr.loss.charbonnier_loss import CharbonnierLoss
-from swin2sr.models.model_utils import create_model
-from swin2sr.configs.biosr_config import get_config
+from loss.charbonnier_loss import CharbonnierLoss
+from models.model_utils import create_model
+from configs.biosr_config import get_config
 
-from swin2sr.models.network_swin2sr import Swin2SR
+from models.network_swin2sr import Swin2SR
 
 def create_dataset(config,
                    datadir,
@@ -67,7 +67,7 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
     
     criterion = CharbonnierLoss()
     
-    num_epochs = 50   
+    num_epochs = 200   
 
     depths = [3, 3]
     num_heads = [3, 3]
@@ -149,7 +149,7 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
     import numpy as np
     
-    from swin2sr.configs.biosr_config import get_config
+    from configs.biosr_config import get_config
     
     logger = wandb.login()
     logdir = 'tesi/transformer/swin2sr/logdir/'

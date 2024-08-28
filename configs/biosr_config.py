@@ -1,8 +1,8 @@
-from swin2sr.configs.default_config import get_default_config
-from swin2sr.core.data_type import DataType
-from swin2sr.core.loss_type import LossType
-from swin2sr.core.model_type import ModelType
-from swin2sr.core.sampler_type import SamplerType
+from configs.default_config import get_default_config
+from core.data_type import DataType
+from core.loss_type import LossType
+from core.model_type import ModelType
+from core.sampler_type import SamplerType
 
 
 def get_config():

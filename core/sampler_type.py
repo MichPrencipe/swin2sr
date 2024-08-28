@@ -1,4 +1,4 @@
-from swin2sr.core.custom_enum import Enum
+from core.custom_enum import Enum
 
 
 class SamplerType(Enum):

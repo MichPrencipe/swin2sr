@@ -6,8 +6,8 @@ import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 
-from swin2sr.models.network_swin2sr import Swin2SR
-from swin2sr.core.model_type import ModelType
+from models.network_swin2sr import Swin2SR
+from core.model_type import ModelType
 
 def create_model(config):
     if config.model.modeltype == ModelType.Swin2SR:

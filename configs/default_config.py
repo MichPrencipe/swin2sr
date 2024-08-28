@@ -1,5 +1,5 @@
 import ml_collections
-from swin2sr.core.sampler_type import SamplerType
+from core.sampler_type import SamplerType
 
 
 def get_default_config():
