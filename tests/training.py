@@ -1,12 +1,12 @@
 import os
 import torch
-import sys
+import time
 from torch.utils.data import DataLoader, random_split
 
-import glob
 
 import pytorch_lightning as pl
 import wandb
+import torch.nn as nn
 from pytorch_lightning.loggers import TensorBoardLogger, WandbLogger
 from data_loader.biosr_dataset import BioSRDataLoader
 
@@ -65,9 +65,9 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
     
     wandb.init(project = "SwinFormer", config=args)    
     
-    criterion = CharbonnierLoss()
+    criterion = nn.MSELoss()
     
-    num_epochs = 200   
+    num_epochs = 200
 
     depths = [3, 3]
     num_heads = [3, 3]
@@ -112,7 +112,7 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
         # Compute average loss for the epoch
         epoch_loss = running_loss / len(train_loader)
         print(f'Epoch {epoch+1}/{num_epochs}, Loss: {epoch_loss:.4f}')
-        wandb.log({"loss": epoch_loss})
+        wandb.log({"epoch":epoch+1, "loss": epoch_loss})
         
         # Validation loop (optional but recommended)
         model.eval()  # Set model to evaluation mode
@@ -141,9 +141,13 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
         val_loss = val_loss / len(val_loader)
         print(f'Validation Loss: {val_loss:.4f}')
         wandb.log({"val_loss": val_loss})
-        
+    
+    saving_dir= "/home/michele.prencipe/tesi/transformer/swin2sr/logdir"
     # Save the trained model
-    torch.save(model.state_dict(), 'swin2sr_model.pth')
+    # Save the model with a unique filename
+    model_filename = f'swin2sr_epoch{epoch+1}_loss{epoch_loss:.4f}_valloss{val_loss:.4f}_{int(time.time())}.pth'
+    model_filepath = os.path.join(saving_dir, model_filename)
+    torch.save(model.state_dict(), model_filepath)
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
@@ -152,7 +156,7 @@ if __name__ == '__main__':
     from configs.biosr_config import get_config
     
     logger = wandb.login()
-    logdir = 'tesi/transformer/swin2sr/logdir/'
+    logdir = 'tesi/transformer/swin2sr/logdir'
 
     config = get_config()
     train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader = create_dataset(config, datadir='/group/jug/ashesh/data/BioSR/')    
