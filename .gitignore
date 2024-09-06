@@ -109,6 +109,10 @@ ENV/
 # mkdocs documentation
 /site
 
+#chkpoints
+tesi/transformer/swin2sr/logdir/**/checkpoints/*.ckpt
+tesi/transformer/swin2sr/logdir/wandb/*
+
 # mypy
 .mypy_cache/
 .dmypy.json
