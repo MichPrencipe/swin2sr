@@ -4,25 +4,20 @@ import torch
 import torch.nn as nn
 import wandb
 
+import time
+
 from torch.utils.data import DataLoader
 from pytorch_lightning.loggers import WandbLogger
 from models.network_swin2sr import Swin2SR
-
-import os
-import torch
-import time
 from torch.utils.data import DataLoader, random_split
 
 
-import pytorch_lightning as pl
 import wandb
 import torch.nn as nn
 from pytorch_lightning.loggers import TensorBoardLogger, WandbLogger
 from data_loader.biosr_dataset import BioSRDataLoader
 
 from configs.biosr_config import get_config
-
-from models.network_swin2sr import Swin2SR
 from models.swin2sr import Swin2SRModule
 from utils.utils import Augmentations
 
@@ -34,13 +29,15 @@ def create_dataset(config,
     if kwargs_dict is None:
         kwargs_dict = {}
     
-    resize_to_shape = (256,256)
+    torch.manual_seed(42)
+    
+    resize_to_shape = (1004, 1004)
     # Define your working directory and data directory
     work_dir = "."
     tensorboard_log_dir = os.path.join(work_dir, "tensorboard_logs")
     os.makedirs(tensorboard_log_dir, exist_ok=True) 
     augmentations = Augmentations() 
-    dataset = BioSRDataLoader(root_dir=datadir, resize_to_shape = resize_to_shape, transform=augmentations)
+    dataset = BioSRDataLoader(root_dir=datadir, resize_to_shape = resize_to_shape, transform=None)
     
     # Define the split ratios
     train_ratio = 0.8
@@ -53,17 +50,15 @@ def create_dataset(config,
     test_size = total_size - train_size - val_size
 
     # Perform the split
-    train_dataset, val_dataset, test_dataset = random_split(dataset, [train_size, val_size, test_size])      
+    train_dataset, val_dataset, test_dataset = random_split(dataset, [train_size, val_size, test_size])     
     
-    
+
     # Create DataLoader for each split
-    train_loader = DataLoader(train_dataset, batch_size=4, shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=4, shuffle=False)
-    test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False)
+    train_loader = DataLoader(train_dataset, batch_size=4, shuffle=True, num_workers=15)
+    val_loader = DataLoader(val_dataset, batch_size=4, shuffle=False, num_workers=15)
+    test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False, num_workers=15)       
     
-    
-    
-    return train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader
+    return dataset, train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader
 
 
 def create_model_and_train(config, logger, train_loader, val_loader, logdir): 
@@ -79,8 +74,6 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
     wandb_logger.experiment.config.update(config.to_dict())
     
     wandb.init(project="SwinFormer", config=args)
-    
-    #TODO add it in the config file
     model = Swin2SRModule(config)
     
     # Define the Trainer
@@ -88,7 +81,8 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
         max_epochs=config.training.num_epochs,
         logger=wandb_logger,
         log_every_n_steps=10,
-        check_val_every_n_epoch=1
+        check_val_every_n_epoch=1,
+        precision=16
     )
     
     # Train the model
@@ -105,5 +99,5 @@ if __name__ == '__main__':
     logdir = 'tesi/transformer/swin2sr/logdir'
     
     config = get_config()
-    train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader = create_dataset(config, datadir='/group/jug/ashesh/data/BioSR/')
+    dataset, train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader = create_dataset(config, datadir='/group/jug/ashesh/data/BioSR/')
     create_model_and_train(config=config, logger=logger, train_loader = train_loader, val_loader = val_loader, logdir = logdir)

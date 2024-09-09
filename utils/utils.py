@@ -24,7 +24,7 @@ class Augmentations:
         return sample
 
     def random_rotation(self, sample):
-        k = np.random.randint(1, 4)  # Randomly choose rotation angle: 90, 180, or 270 degrees
+        k = np.random.randint(0, 4)  # Randomly choose rotation angle: 90, 180, or 270 degrees
         img = sample['image']
         
         if img.ndim == 3:  # Handle 3D images (e.g., color images)

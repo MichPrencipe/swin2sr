@@ -8,7 +8,7 @@ from core.sampler_type import SamplerType
 def get_config():
     config = get_default_config()
     data = config.data
-    data.image_size = 256
+    data.image_size = 1004
     data.data_type = DataType.BioSR_MRC
     # data.channel_1 = 0
     # data.channel_2 = 1
