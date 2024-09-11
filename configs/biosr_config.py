@@ -22,7 +22,7 @@ def get_config():
 
     model = config.model
     model.model_type = ModelType.Swin2SR
-    model.img_shape = (256,256)
+    model.img_shape = (1004,1004)
     model.upscale = 1
     model.in_chans = 1
     

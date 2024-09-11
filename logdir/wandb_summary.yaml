@@ -1,0 +1,15 @@
+Performance_Section: "\n    ### Run ID: b1iyzxdw\n    **Configuration:** LR: 0.001,\
+  \ Epochs: 10\n\n    #### Performance Metrics:\n    - **PSNR channel 1**: 24.562976837158203\n\
+  \    - **PSNR channel 2**: 20.72745132446289\n    \n    "
+_runtime: 30.263134241104126
+_step: 20
+_timestamp: 1726069210.3856652
+epoch: 4
+loss: 0.0024646564852446318
+model_weights_filename: swin2sr_epoch5_valloss0.0022_.pth
+train_psnr channel 1: 23.20448112487793
+train_psnr channel 2: 20.274301528930664
+trainer/global_step: 109
+val_loss: 0.0022314325906336308
+val_psnr channel 1: 24.562976837158203
+val_psnr channel 2: 20.72745132446289
