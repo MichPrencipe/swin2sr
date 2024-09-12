@@ -64,6 +64,7 @@ class BioSRDataLoader(Dataset):
         if self.transform:
             sample1 = self.transform(sample1)
             sample2 = self.transform(sample2)
+        
 
         input_image = sample1['image'] + sample2['image']
         target = np.stack((sample1['image'], sample2['image']))

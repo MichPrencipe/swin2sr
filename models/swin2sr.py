@@ -34,7 +34,8 @@ class Swin2SRModule(pl.LightningModule):
             inputs = inputs.unsqueeze(1)
         if len(targets.shape) == 3:
             targets = targets.unsqueeze(1)
-
+        
+        
         outputs = self(inputs)   
         loss = self.criterion(outputs, targets)
         
