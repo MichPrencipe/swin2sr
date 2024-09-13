@@ -7,7 +7,7 @@ from skimage.transform import resize
 
 def downscale(data, shape):
     """
-    HXWXC -> H/2 x W/2 x C
+    HxWxC -> H/2 x W/2 x C
     """
     new_shape = (*shape, data.shape[-1])
     return resize(data, new_shape)
@@ -15,7 +15,7 @@ def downscale(data, shape):
 class BioSRDataLoader(Dataset):
     
     """Dataset class to load images from MRC files in multiple folders."""
-    def __init__(self, root_dir, patch_size=64, transform=None, resize_to_shape=None):
+    def __init__(self, root_dir, patch_size=64, transform=None, resize_to_shape=None, noisy_data = False, noise_factor = 0.1):
         """
         Args:
             root_dir (string): Root directory containing subdirectories of MRC files.
@@ -27,7 +27,15 @@ class BioSRDataLoader(Dataset):
         self.c1_data = read_mrc(os.path.join(self.root_dir, 'ER/', 'GT_all.mrc'), filetype='image')[1]
         self.c2_data = read_mrc(os.path.join(self.root_dir, 'CCPs/', 'GT_all.mrc'), filetype='image')[1]
         self.patch_size = patch_size
-
+        self.noisy_data = noisy_data
+        self.noise_factor = noise_factor
+        
+        
+        self.c1_min = np.min(self.c1_data) 
+        self.c2_min = np.min(self.c2_data)
+        self.c1_max = np.max(self.c1_data)
+        self.c2_max = np.max(self.c2_data)
+       
         # Ensure c1_data and c2_data are NumPy arrays
         if isinstance(self.c1_data, tuple):
             self.c1_data = np.array(self.c1_data)
@@ -38,7 +46,8 @@ class BioSRDataLoader(Dataset):
         if resize_to_shape is not None:
             print(f"Resizing to shape {resize_to_shape}. MUST BE REMOVED IN PRODUCTION!")
             self.c1_data = downscale(self.c1_data, resize_to_shape)
-            self.c2_data = downscale(self.c2_data, resize_to_shape)
+            self.c2_data = downscale(self.c2_data, resize_to_shape)                
+        
 
         print(f"c1_data shape: {self.c1_data.shape}")
         print(f"c2_data shape: {self.c2_data.shape}")
@@ -53,21 +62,31 @@ class BioSRDataLoader(Dataset):
 
         # Convert data to float32 and normalize (example normalization)
         data_channel1 = data_channel1.astype(np.float32)
-        data_channel1 = (data_channel1 - np.min(data_channel1)) / (np.max(data_channel1) - np.min(data_channel1))  # Min-Max Normalization
-
         data_channel2 = data_channel2.astype(np.float32)
-        data_channel2 = (data_channel2 - np.min(data_channel2)) / (np.max(data_channel2) - np.min(data_channel2))  # Min-Max Normalization
+
 
         sample1 = {'image': data_channel1}
         sample2 = {'image': data_channel2}
 
         if self.transform:
             sample1 = self.transform(sample1)
-            sample2 = self.transform(sample2)
-        
+            sample2 = self.transform(sample2)           
+                           
 
         input_image = sample1['image'] + sample2['image']
-        target = np.stack((sample1['image'], sample2['image']))
+        
+        if self.noisy_data:         
+            noisy_image = np.random.poisson(input_image / self.noise_factor) * self.noise_factor 
+            gaussian_data = np.random.normal(0, np.std(noisy_image), (noisy_image.shape))
+            input_image = input_image + gaussian_data 
+        
+        input_image = (input_image - np.min(input_image)) / (np.max(input_image) - np.min(input_image)) 
+        input_image = input_image.astype(np.float32)
+        sample1['image'] = (sample1['image'] - self.c1_min) / (self.c1_max - self.c2_min)  # Min-Max Normalization
+        sample2['image'] = (sample2['image'] - self.c2_min) / (self.c2_max - self.c2_min)  # Min-Max Normalization
+        
+        target = np.stack((sample1['image'], sample2['image']))        
+               
         
         return input_image, target
    

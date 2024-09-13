@@ -16,15 +16,14 @@ from models.swin2sr import Swin2SRModule
 from utils.utils import Augmentations
 
 
-def create_dataset(config, datadir, kwargs_dict=None):
+def create_dataset(config, datadir, kwargs_dict=None, noisy_data = False, noisy_factor = 0.1):
     if kwargs_dict is None:
         kwargs_dict = {}
-    
-    torch.manual_seed(42)
+        
     resize_to_shape = (768, 768)
     
     augmentations = Augmentations() 
-    dataset = BioSRDataLoader(root_dir=datadir, resize_to_shape=resize_to_shape, transform=augmentations)
+    dataset = BioSRDataLoader(root_dir=datadir, resize_to_shape=resize_to_shape, transform=augmentations, noisy_data=noisy_data, noise_factor=noisy_factor)
     
     train_ratio, val_ratio = 0.8, 0.1
     total_size = len(dataset)
@@ -32,6 +31,7 @@ def create_dataset(config, datadir, kwargs_dict=None):
     val_size = int(val_ratio * total_size)
     test_size = total_size - train_size - val_size
 
+    torch.manual_seed(42)
     train_dataset, val_dataset, test_dataset = random_split(dataset, [train_size, val_size, test_size])
 
     train_loader = DataLoader(train_dataset, batch_size=2, shuffle=True, num_workers=15)
@@ -48,14 +48,16 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
         "dataset": "BioSRDataset",
         "epochs": config.training.num_epochs
     }
+    config_str = f"LR: {args['learning_rate']}, Epochs: {args['epochs']}, Augmentations: True, Noisy_data: true" 
+    
     
     print(f"Learning rate: {args['learning_rate']}")
     
-    # Get node or hostname for custom run name
+    # Get node or hostname for custom run name, #TODO changethe name
     node_name = os.environ.get('SLURMD_NODENAME', socket.gethostname())  
     
     # Initialize WandbLogger with a custom run name
-    wandb_logger = WandbLogger(save_dir=logdir, project="SwinTransformer", name=f"{node_name}")
+    wandb_logger = WandbLogger(save_dir=logdir, project="SwinTransformer", name=f"{node_name}" + config_str)
     
     wandb_logger.experiment.config.update(config.to_dict())   
     model = Swin2SRModule(config)
@@ -79,7 +81,6 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
     val_loss = trainer.callback_metrics.get("val_loss", None)
     
     run_id = wandb_logger.experiment.id
-    config_str = f"LR: {args['learning_rate']}, Epochs: {args['epochs']}, Augmentations: True" 
     
     wandb_logger.experiment.summary["Performance_Section"] = f"""
     ### Run ID: {run_id}

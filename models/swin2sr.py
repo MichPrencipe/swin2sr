@@ -48,7 +48,7 @@ class Swin2SRModule(pl.LightningModule):
         
         self.log("loss", loss, on_step=False, on_epoch=True)
         self.log('train_psnr channel 1', psnr_value1, prog_bar=True, logger=True)
-        self.log('train_psnr channel 2', psnr_value2, prog_bar=True, logger=True)
+        self.log('train_psnr channel 2', psnr_value2, prog_bar=False, logger=True)
         
         return loss
 
@@ -70,8 +70,8 @@ class Swin2SRModule(pl.LightningModule):
         psnr_value2 = psnr(outputs[...,1], targets[...,1], data_range=1.0)   
         
         self.log("val_loss", val_loss, on_step=False, on_epoch=True)
-        self.log('val_psnr channel 1', psnr_value1, prog_bar=True, logger=True)
-        self.log('val_psnr channel 2', psnr_value2, prog_bar=True, logger=True)
+        self.log('val_psnr channel 1', psnr_value1, prog_bar=False, logger=True)
+        self.log('val_psnr channel 2', psnr_value2, prog_bar=False, logger=True)
         
         return val_loss
 
