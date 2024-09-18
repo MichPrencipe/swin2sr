@@ -11,7 +11,7 @@ from models.network_swin2sr import Swin2SR
 from core.model_type import ModelType
 import torchmetrics
 from skimage.metrics import peak_signal_noise_ratio as psnr
-from skimage.metrics import structural_similarity as ssim
+from core.psnr import PSNR
 
 class Swin2SRModule(pl.LightningModule):
     def __init__(self, config):
@@ -33,18 +33,23 @@ class Swin2SRModule(pl.LightningModule):
         if len(inputs.shape) == 3:
             inputs = inputs.unsqueeze(1)
         if len(targets.shape) == 3:
-            targets = targets.unsqueeze(1)
-        
+            targets = targets.unsqueeze(1)        
         
         outputs = self(inputs)   
         loss = self.criterion(outputs, targets)
-        
+        print(loss)
         outputs = outputs.cpu().detach().numpy()
-        targets = targets.cpu().detach().numpy()
+        targets = targets.cpu().detach().numpy()        
+            
+        for ch_idx in range(outputs.shape[1]):
+            if ch_idx == 0:
+                data_range = 65535
+            else: 
+                data_range = 65535 #TODO how to retrieve that number?          
         
-        # Calculate PSNR and SSIM
-        psnr_value1 = psnr(outputs[...,0], targets[...,0], data_range=1.0)
-        psnr_value2 = psnr(outputs[...,1], targets[...,1], data_range=1.0)  
+        # Calculate PSNR
+        psnr_value1 = PSNR(targets[: , 0, :, :], outputs[:, 0, :, :], range_ = data_range).mean()
+        psnr_value2 = PSNR(targets[: , 1, :, : ], outputs[: , 1, :,:], range_ = data_range).mean()  
         
         self.log("loss", loss, on_step=False, on_epoch=True)
         self.log('train_psnr channel 1', psnr_value1, prog_bar=True, logger=True)
@@ -61,14 +66,20 @@ class Swin2SRModule(pl.LightningModule):
 
         outputs = self(inputs)
         val_loss = self.criterion(outputs, targets)       
-        
+        print(val_loss)
         outputs = outputs.cpu().detach().numpy()
         targets = targets.cpu().detach().numpy()
         
-        # Calculate PSNR and SSIM
-        psnr_value1 = psnr(outputs[...,0], targets[...,0], data_range=1.0)
-        psnr_value2 = psnr(outputs[...,1], targets[...,1], data_range=1.0)   
-        
+        for ch_idx in range(outputs.shape[1]):
+            if ch_idx == 0:
+                data_range = 65535
+            else: 
+                data_range = 65535 #TODO how to retrieve that number?
+        # Calculate PSNR
+        psnr_value1 = PSNR(targets[:,0, :, :], outputs[:,0, :, :], range_ = data_range).mean()
+        psnr_value2 = PSNR(targets[:,1, :, :], outputs[:,1, :, :], range_ = data_range).mean()
+        print(psnr_value1, psnr_value2)
+                
         self.log("val_loss", val_loss, on_step=False, on_epoch=True)
         self.log('val_psnr channel 1', psnr_value1, prog_bar=False, logger=True)
         self.log('val_psnr channel 2', psnr_value2, prog_bar=False, logger=True)

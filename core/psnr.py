@@ -5,7 +5,7 @@ e9b29ba0b21f3b5fbd0f915309dcd18ecfee0f55
 """
 import torch
 
-from swin2sr.core.numpy_decorator import allow_numpy
+from core.numpy_decorator import allow_numpy
 
 
 def zero_mean(x):

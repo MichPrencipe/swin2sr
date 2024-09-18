@@ -20,7 +20,7 @@ def create_dataset(config, datadir, kwargs_dict=None, noisy_data = False, noisy_
     if kwargs_dict is None:
         kwargs_dict = {}
         
-    resize_to_shape = (768, 768)
+    resize_to_shape = (256, 256)
     
     augmentations = Augmentations() 
     dataset = BioSRDataLoader(root_dir=datadir, resize_to_shape=resize_to_shape, transform=augmentations, noisy_data=noisy_data, noise_factor=noisy_factor)
@@ -64,7 +64,7 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
     
     # Define the Trainer
     trainer = pl.Trainer(
-        max_epochs=config.training.num_epochs,
+        max_epochs=10,
         logger=wandb_logger,
         log_every_n_steps=22,
         check_val_every_n_epoch=1,
@@ -113,6 +113,6 @@ if __name__ == '__main__':
     config = get_config()
     
     dataset, train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader = create_dataset(
-        config=config, datadir='/group/jug/ashesh/data/BioSR/'
+        config=config, datadir='/group/jug/ashesh/data/BioSR/', noisy_data= True, noisy_factor=0.1
     )
     create_model_and_train(config=config, logger=wandb, train_loader=train_loader, val_loader=val_loader, logdir=logdir)

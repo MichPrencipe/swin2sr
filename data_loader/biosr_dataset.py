@@ -35,6 +35,7 @@ class BioSRDataLoader(Dataset):
         self.c2_min = np.min(self.c2_data)
         self.c1_max = np.max(self.c1_data)
         self.c2_max = np.max(self.c2_data)
+        print("Norm Param: ", self.c1_min, self.c2_min, self.c1_max, self.c2_max)
        
         # Ensure c1_data and c2_data are NumPy arrays
         if isinstance(self.c1_data, tuple):
@@ -76,19 +77,21 @@ class BioSRDataLoader(Dataset):
         input_image = sample1['image'] + sample2['image']
         
         if self.noisy_data:         
-            noisy_image = np.random.poisson(input_image / self.noise_factor) * self.noise_factor 
-            gaussian_data = np.random.normal(0, np.std(noisy_image), (noisy_image.shape))
-            input_image = input_image + gaussian_data 
+            poisson_data = np.random.poisson(input_image / self.noise_factor) * self.noise_factor 
+            gaussian_data = np.random.normal(0, np.std(poisson_data), (poisson_data.shape)) #change the noise_factor and the standard deviation
+            input_image = poisson_data + gaussian_data 
         
         input_image = (input_image - np.min(input_image)) / (np.max(input_image) - np.min(input_image)) 
         input_image = input_image.astype(np.float32)
-        sample1['image'] = (sample1['image'] - self.c1_min) / (self.c1_max - self.c2_min)  # Min-Max Normalization
+        sample1['image'] = (sample1['image'] - self.c1_min) / (self.c1_max - self.c1_min)  # Min-Max Normalization
         sample2['image'] = (sample2['image'] - self.c2_min) / (self.c2_max - self.c2_min)  # Min-Max Normalization
         
         target = np.stack((sample1['image'], sample2['image']))        
-               
-        
+        target = target.astype(np.float32)        
         return input_image, target
+    
+    def get_normalization_params(self):
+        return self.c1_min, self.c1_max, self.c2_min, self.c2_max   
    
 
     
