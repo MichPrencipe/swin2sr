@@ -9,8 +9,9 @@ def downscale(data, shape):
     """
     HxWxC -> H/2 x W/2 x C
     """
+    dtype = data.dtype
     new_shape = (*shape, data.shape[-1])
-    return resize(data, new_shape)
+    return resize(data*1.0, new_shape).astype(dtype)
 
 class BioSRDataLoader(Dataset):
     
