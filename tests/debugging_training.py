@@ -16,7 +16,7 @@ from models.swin2sr import Swin2SRModule
 from utils.utils import Augmentations
 
 
-def create_dataset(config, datadir, kwargs_dict=None, noisy_data = False, noisy_factor = 0.1):
+def create_dataset(config, datadir, kwargs_dict=None, noisy_data = False, noisy_factor = 0.1, resize_to_shape=(256,256)):
     if kwargs_dict is None:
         kwargs_dict = {}
         
@@ -34,6 +34,7 @@ def create_dataset(config, datadir, kwargs_dict=None, noisy_data = False, noisy_
     torch.manual_seed(42)
     train_dataset, val_dataset, test_dataset = random_split(dataset, [train_size, val_size, test_size])
 
+    torch.manual_seed(42)
     train_loader = DataLoader(train_dataset, batch_size=2, shuffle=True, num_workers=4)
     val_loader = DataLoader(val_dataset, batch_size=2, shuffle=False, num_workers=4)
     test_loader = DataLoader(test_dataset, batch_size=2, shuffle=False, num_workers=4)
@@ -56,7 +57,7 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
     # Define the Trainer
     trainer = pl.Trainer(
         max_epochs=10,
-        log_every_n_steps=150,
+        log_every_n_steps=1500,
         check_val_every_n_epoch=1,
         precision=16,
         enable_progress_bar=True
@@ -78,6 +79,6 @@ if __name__ == '__main__':
     logdir = 'tesi/transformer/swin2sr/logdir'
     config = get_config()    
     dataset, train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader = create_dataset(
-        config=config, datadir='/group/jug/ashesh/data/BioSR/', noisy_data= True, noisy_factor=0.1
+        config=config, datadir='/group/jug/ashesh/data/BioSR/', noisy_data= False, noisy_factor=0.1
     )
     create_model_and_train(config=config, logger=None, train_loader=train_loader, val_loader=val_loader, logdir=logdir)

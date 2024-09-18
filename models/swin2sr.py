@@ -39,21 +39,19 @@ class Swin2SRModule(pl.LightningModule):
         loss = self.criterion(outputs, targets)
         print(loss)
         outputs = outputs.cpu().detach().numpy()
-        targets = targets.cpu().detach().numpy()        
-            
+        targets = targets.cpu().detach().numpy()  
+        print(targets.shape)      
+        psnr_arr = { 0: [] , 1: []}
         for ch_idx in range(outputs.shape[1]):
             if ch_idx == 0:
-                data_range = 65535
-            else: 
-                data_range = 65535 #TODO how to retrieve that number?          
-        
-        # Calculate PSNR
-        psnr_value1 = PSNR(targets[: , 0, :, :], outputs[:, 0, :, :], range_ = data_range).mean()
-        psnr_value2 = PSNR(targets[: , 1, :, : ], outputs[: , 1, :,:], range_ = data_range).mean()  
+                data_range = targets[:, ch_idx].max() -  targets[:,ch_idx].min() 
+            else:
+                data_range = targets[:, ch_idx].max() -  targets[:, ch_idx].min()
+            psnr_arr[ch_idx].append(PSNR(targets[:, ch_idx], outputs[:, ch_idx], range_= data_range))  
         
         self.log("loss", loss, on_step=False, on_epoch=True)
-        self.log('train_psnr channel 1', psnr_value1, prog_bar=True, logger=True)
-        self.log('train_psnr channel 2', psnr_value2, prog_bar=False, logger=True)
+        self.log('train_psnr channel 1', np.mean(psnr_arr[0]), prog_bar=True, logger=True)
+        self.log('train_psnr channel 2', np.mean(psnr_arr[1]), prog_bar=False, logger=True)
         
         return loss
 
@@ -70,19 +68,18 @@ class Swin2SRModule(pl.LightningModule):
         outputs = outputs.cpu().detach().numpy()
         targets = targets.cpu().detach().numpy()
         
+        psnr_arr = { 0: [] , 1: []}
         for ch_idx in range(outputs.shape[1]):
             if ch_idx == 0:
-                data_range = 65535
-            else: 
-                data_range = 65535 #TODO how to retrieve that number?
-        # Calculate PSNR
-        psnr_value1 = PSNR(targets[:,0, :, :], outputs[:,0, :, :], range_ = data_range).mean()
-        psnr_value2 = PSNR(targets[:,1, :, :], outputs[:,1, :, :], range_ = data_range).mean()
-        print(psnr_value1, psnr_value2)
+                data_range = targets[:, ch_idx].max() -  targets[:,ch_idx].min() 
+            else:
+                data_range = targets[:, ch_idx].max() -  targets[:, ch_idx].min()
+            psnr_arr[ch_idx].append(PSNR(targets[:, ch_idx], outputs[:, ch_idx], range_= data_range))        
+        
                 
         self.log("val_loss", val_loss, on_step=False, on_epoch=True)
-        self.log('val_psnr channel 1', psnr_value1, prog_bar=False, logger=True)
-        self.log('val_psnr channel 2', psnr_value2, prog_bar=False, logger=True)
+        self.log('val_psnr channel 1', np.mean(psnr_arr[0]), prog_bar=False, logger=True)
+        self.log('val_psnr channel 2', np.mean(psnr_arr[1]), prog_bar=False, logger=True)
         
         return val_loss
 
