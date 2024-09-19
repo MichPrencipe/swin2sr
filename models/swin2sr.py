@@ -50,7 +50,7 @@ class Swin2SRModule(pl.LightningModule):
             psnr_arr[ch_idx].append(PSNR(targets[:, ch_idx], outputs[:, ch_idx], range_= data_range))  
         
         self.log("loss", loss, on_step=False, on_epoch=True)
-        self.log('train_psnr channel 1', np.mean(psnr_arr[0]), prog_bar=True, logger=True)
+        self.log('train_psnr channel 1', np.mean(psnr_arr[0]), prog_bar=False, logger=True)
         self.log('train_psnr channel 2', np.mean(psnr_arr[1]), prog_bar=False, logger=True)
         
         return loss

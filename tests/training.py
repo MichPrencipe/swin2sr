@@ -5,6 +5,7 @@ import torch.nn as nn
 import wandb
 import yaml
 import socket
+import json
 
 from torch.utils.data import DataLoader
 from pytorch_lightning.loggers import WandbLogger
@@ -34,8 +35,13 @@ def create_dataset(config, datadir, kwargs_dict=None, noisy_data = False, noisy_
     torch.manual_seed(42)
     train_dataset, val_dataset, test_dataset = random_split(dataset, [train_size, val_size, test_size])
 
+    torch.manual_seed(42)
     train_loader = DataLoader(train_dataset, batch_size=2, shuffle=True, num_workers=15)
+    
+    torch.manual_seed(42)
     val_loader = DataLoader(val_dataset, batch_size=2, shuffle=False, num_workers=15)
+    
+    torch.manual_seed(42)
     test_loader = DataLoader(test_dataset, batch_size=2, shuffle=False, num_workers=15)
     
     return dataset, train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader
@@ -48,7 +54,7 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
         "dataset": "BioSRDataset",
         "epochs": config.training.num_epochs
     }
-    config_str = f"LR: {args['learning_rate']}, Epochs: {args['epochs']}, Augmentations: True, Noisy_data: true" 
+    config_str = f"LR: {args['learning_rate']}, Epochs: {args['epochs']}, Augmentations: True, Noisy_data: False" 
     
     
     print(f"Learning rate: {args['learning_rate']}")
@@ -64,9 +70,9 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
     
     # Define the Trainer
     trainer = pl.Trainer(
-        max_epochs=10,
+        max_epochs=400,
         logger=wandb_logger,
-        log_every_n_steps=22,
+        log_every_n_steps=150,
         check_val_every_n_epoch=1,
         precision=16,
         enable_progress_bar=True
@@ -91,7 +97,7 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
     - **PSNR channel 2**: {psnr2}
     """
     
-    model_filename = f'swin2sr_epoch{trainer.current_epoch}_valloss{val_loss:.4f}.pth' if val_loss is not None else 'model.pth'
+    model_filename = f'{run_id}swin2sr_epoch{trainer.current_epoch}_valloss{val_loss:.4f}.pth' if val_loss is not None else 'model.pth'
     wandb_logger.experiment.summary['model_weights_filename'] = model_filename
     
     # Save model
@@ -101,11 +107,26 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
     
     # Save wandb summary to a file
     summary_dict = dict(wandb_logger.experiment.summary)
-    with open(os.path.join(logdir, "wandb_summary.yaml"), "w") as f:
-        yaml.dump(summary_dict, f)
     
     wandb.finish()
+    
+    data ={}
+        
+    # Define the JSON file path
+    json_file_path = 'run_data.json'
 
+        # Check if the JSON file exists
+    if os.path.exists(json_file_path):
+        # If the file exists, read its content
+        with open(json_file_path, 'r') as json_file:
+            data = json.load(json_file)
+
+    # Append the new run data to the existing list
+    data[f'{run_id}'] = summary_dict
+
+    # Write the updated data back to the file
+    with open(json_file_path, 'w') as json_file:
+        json.dump(data, json_file, indent=4)
 
 if __name__ == '__main__':
     logdir = 'tesi/transformer/swin2sr/logdir'
@@ -113,6 +134,6 @@ if __name__ == '__main__':
     config = get_config()
     
     dataset, train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader = create_dataset(
-        config=config, datadir='/group/jug/ashesh/data/BioSR/', noisy_data= True, noisy_factor=0.1
+        config=config, datadir='/group/jug/ashesh/data/BioSR/', noisy_data= False, noisy_factor=0.1
     )
     create_model_and_train(config=config, logger=wandb, train_loader=train_loader, val_loader=val_loader, logdir=logdir)

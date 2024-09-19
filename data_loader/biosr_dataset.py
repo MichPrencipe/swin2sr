@@ -29,14 +29,8 @@ class BioSRDataLoader(Dataset):
         self.c2_data = read_mrc(os.path.join(self.root_dir, 'CCPs/', 'GT_all.mrc'), filetype='image')[1]
         self.patch_size = patch_size
         self.noisy_data = noisy_data
-        self.noise_factor = noise_factor
+        self.noise_factor = noise_factor       
         
-        
-        self.c1_min = np.min(self.c1_data) 
-        self.c2_min = np.min(self.c2_data)
-        self.c1_max = np.max(self.c1_data)
-        self.c2_max = np.max(self.c2_data)
-        print("Norm Param: ", self.c1_min, self.c2_min, self.c1_max, self.c2_max)
        
         # Ensure c1_data and c2_data are NumPy arrays
         if isinstance(self.c1_data, tuple):
@@ -50,7 +44,13 @@ class BioSRDataLoader(Dataset):
             self.c1_data = downscale(self.c1_data, resize_to_shape)
             self.c2_data = downscale(self.c2_data, resize_to_shape)                
         
-
+        
+        self.c1_min = np.min(self.c1_data) 
+        self.c2_min = np.min(self.c2_data)
+        self.c1_max = np.max(self.c1_data)
+        self.c2_max = np.max(self.c2_data)
+        print("Norm Param: ", self.c1_min, self.c2_min, self.c1_max, self.c2_max)
+        
         print(f"c1_data shape: {self.c1_data.shape}")
         print(f"c2_data shape: {self.c2_data.shape}")
         
