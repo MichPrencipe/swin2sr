@@ -41,5 +41,26 @@
         "_timestamp": 1726747039.0806656,
         "Performance_Section": "\n    ### Run ID: vjo5xpv9\n    **Configuration:** LR: 0.001, Epochs: 400, Augmentations: True, Noisy_data: False\n\n    #### Performance Metrics:\n    - **PSNR channel 1**: 26.44931411743164\n    - **PSNR channel 2**: 25.772939682006836\n    ",
         "train_psnr channel 1": 22.878496170043945
+    },
+    "e4nc7m54": {
+        "Performance_Section": "\n    ### Run ID: e4nc7m54\n    **Configuration:** LR: 0.001, Epochs: 400, Augmentations: True, Noisy_data: False\n\n    #### Performance Metrics:\n    - **PSNR channel 1**: None\n    - **PSNR channel 2**: None\n    ",
+        "model_weights_filename": "model.pth"
+    },
+    "ys245a98": {
+        "trainer/global_step": 219,
+        "_timestamp": 1726833340.1077342,
+        "epoch": 9,
+        "loss_epoch": 0.0017917015356943011,
+        "model_weights_filename": "ys245a98swin2sr_epoch10_valloss0.0023.pth",
+        "val_psnr channel 1": 25.449392318725586,
+        "Performance_Section": "\n    ### Run ID: ys245a98\n    **Configuration:** LR: 0.001, Epochs: 400, Augmentations: True, Noisy_data: True, EarlyStopping and ReduceOnPlateau\n\n    #### Performance Metrics:\n    - **PSNR channel 1**: 25.449392318725586\n    - **PSNR channel 2**: 26.190393447875977\n    ",
+        "train_psnr channel 1": 27.407819747924805,
+        "train_psnr channel 2": 25.93619155883789,
+        "val_loss_epoch": 0.0022757898550480604,
+        "loss_step": 0.0015604221262037754,
+        "val_loss_step": 0.0019069997360929847,
+        "_runtime": 46.127471723,
+        "_step": 50,
+        "val_psnr channel 2": 26.190393447875977
     }
 }

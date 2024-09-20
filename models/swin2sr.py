@@ -13,6 +13,8 @@ import torchmetrics
 from skimage.metrics import peak_signal_noise_ratio as psnr
 from core.psnr import PSNR
 
+from torch.optim.lr_scheduler import ReduceLROnPlateau
+
 class Swin2SRModule(pl.LightningModule):
     def __init__(self, config):
         super(Swin2SRModule, self).__init__()
@@ -35,7 +37,7 @@ class Swin2SRModule(pl.LightningModule):
         if len(targets.shape) == 3:
             targets = targets.unsqueeze(1)        
         
-        outputs = self(inputs)   
+        outputs = self.forward(inputs)   
         loss = self.criterion(outputs, targets)
         print(loss)
         outputs = outputs.cpu().detach().numpy()
@@ -49,7 +51,7 @@ class Swin2SRModule(pl.LightningModule):
                 data_range = targets[:, ch_idx].max() -  targets[:, ch_idx].min()
             psnr_arr[ch_idx].append(PSNR(targets[:, ch_idx], outputs[:, ch_idx], range_= data_range))  
         
-        self.log("loss", loss, on_step=False, on_epoch=True)
+        self.log("loss", loss, on_step=True, on_epoch=True)
         self.log('train_psnr channel 1', np.mean(psnr_arr[0]), prog_bar=False, logger=True)
         self.log('train_psnr channel 2', np.mean(psnr_arr[1]), prog_bar=False, logger=True)
         
@@ -62,7 +64,7 @@ class Swin2SRModule(pl.LightningModule):
         if len(targets.shape) == 3:
             targets = targets.unsqueeze(1)
 
-        outputs = self(inputs)
+        outputs = self.forward(inputs)
         val_loss = self.criterion(outputs, targets)       
         print(val_loss)
         outputs = outputs.cpu().detach().numpy()
@@ -77,13 +79,25 @@ class Swin2SRModule(pl.LightningModule):
             psnr_arr[ch_idx].append(PSNR(targets[:, ch_idx], outputs[:, ch_idx], range_= data_range))        
         
                 
-        self.log("val_loss", val_loss, on_step=False, on_epoch=True)
+        self.log("val_loss", val_loss, on_step=True, on_epoch=True)
         self.log('val_psnr channel 1', np.mean(psnr_arr[0]), prog_bar=False, logger=True)
         self.log('val_psnr channel 2', np.mean(psnr_arr[1]), prog_bar=False, logger=True)
         
         return val_loss
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=self.learning_rate)
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
+        
+        # Set up ReduceLROnPlateau scheduler
+        scheduler = {
+            'scheduler': ReduceLROnPlateau(optimizer, mode='min', factor=.1, patience=20, min_lr=1e-4),
+            'monitor': 'val_loss',  # Metric to monitor (same as in Keras)
+            'interval': 'epoch',
+            'frequency': 1  # Call the scheduler every epoch
+        }
+        
+        return {"optimizer": optimizer, "lr_scheduler": scheduler}
+
+
     
 

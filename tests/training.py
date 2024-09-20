@@ -15,16 +15,20 @@ from data_loader.biosr_dataset import BioSRDataLoader
 from configs.biosr_config import get_config
 from models.swin2sr import Swin2SRModule
 from utils.utils import Augmentations
+from pytorch_lightning.callbacks import EarlyStopping
+from pytorch_lightning.callbacks import ModelCheckpoint
 
 
-def create_dataset(config, datadir, kwargs_dict=None, noisy_data = False, noisy_factor = 0.1):
+
+
+def create_dataset(config, datadir, kwargs_dict=None, noisy_data = False, noisy_factor = 0.1, gaus_factor = 1000):
     if kwargs_dict is None:
         kwargs_dict = {}
         
-    resize_to_shape = (256, 256)
+    resize_to_shape = (768, 768)
     
     augmentations = Augmentations() 
-    dataset = BioSRDataLoader(root_dir=datadir, resize_to_shape=resize_to_shape, transform=augmentations, noisy_data=noisy_data, noise_factor=noisy_factor)
+    dataset = BioSRDataLoader(root_dir=datadir, resize_to_shape=resize_to_shape, transform=augmentations, noisy_data=noisy_data, noise_factor=noisy_factor, gaus_factor=gaus_factor)
     
     train_ratio, val_ratio = 0.8, 0.1
     total_size = len(dataset)
@@ -36,13 +40,13 @@ def create_dataset(config, datadir, kwargs_dict=None, noisy_data = False, noisy_
     train_dataset, val_dataset, test_dataset = random_split(dataset, [train_size, val_size, test_size])
 
     torch.manual_seed(42)
-    train_loader = DataLoader(train_dataset, batch_size=2, shuffle=True, num_workers=15)
+    train_loader = DataLoader(train_dataset, batch_size=4, shuffle=True, num_workers=4)
     
     torch.manual_seed(42)
-    val_loader = DataLoader(val_dataset, batch_size=2, shuffle=False, num_workers=15)
+    val_loader = DataLoader(val_dataset, batch_size=4, shuffle=False, num_workers=4)
     
     torch.manual_seed(42)
-    test_loader = DataLoader(test_dataset, batch_size=2, shuffle=False, num_workers=15)
+    test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False, num_workers=4)
     
     return dataset, train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader
 
@@ -54,7 +58,7 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
         "dataset": "BioSRDataset",
         "epochs": config.training.num_epochs
     }
-    config_str = f"LR: {args['learning_rate']}, Epochs: {args['epochs']}, Augmentations: True, Noisy_data: False" 
+    config_str = f"LR: {args['learning_rate']}, Epochs: {args['epochs']}, Augmentations: True, Noisy_data: True, EarlyStopping and ReduceOnPlateau" 
     
     
     print(f"Learning rate: {args['learning_rate']}")
@@ -67,6 +71,26 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
     
     wandb_logger.experiment.config.update(config.to_dict())   
     model = Swin2SRModule(config)
+    # Define two callback functions for early stopping and learning rate reduction
+    model_filename = f'{run_id}swin2sr_epoch{trainer.current_epoch}_valloss{val_loss:.4f}.pth' if val_loss is not None else 'model.pth'
+
+    early_stopping = EarlyStopping(
+        monitor='val_loss',  
+        patience=50,    # How long to wait after last improvement
+        #restore_best_weights=True,  # Automatically handled by PL's checkpoint system
+        mode='min'  )
+    
+        # Define ModelCheckpoint callback to save the best model
+    checkpoint_callback = ModelCheckpoint(
+        monitor='val_loss',  
+        save_top_k=1, 
+        save_last=True,
+        mode='min',         
+        dirpath='/home/michele.prencipe/tesi/transformer/swin2sr/logdir',     
+        filename=model_filename + '_best',
+    )
+    checkpoint_callback.CHECKPOINT_NAME_LAST = model_filename + "_last"
+    callbacks=[early_stopping, checkpoint_callback]
     
     # Define the Trainer
     trainer = pl.Trainer(
@@ -75,9 +99,9 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
         log_every_n_steps=150,
         check_val_every_n_epoch=1,
         precision=16,
-        enable_progress_bar=True
-    )
-    
+        enable_progress_bar= True, 
+        callbacks = callbacks
+    )    
     # Train the model
     trainer.fit(model, train_loader, val_loader)
     
@@ -97,7 +121,7 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
     - **PSNR channel 2**: {psnr2}
     """
     
-    model_filename = f'{run_id}swin2sr_epoch{trainer.current_epoch}_valloss{val_loss:.4f}.pth' if val_loss is not None else 'model.pth'
+    model_filename = f'{run_id}swin2sr'
     wandb_logger.experiment.summary['model_weights_filename'] = model_filename
     
     # Save model
@@ -111,7 +135,7 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
     wandb.finish()
     
     data ={}
-        
+            
     # Define the JSON file path
     json_file_path = 'run_data.json'
 
@@ -134,6 +158,6 @@ if __name__ == '__main__':
     config = get_config()
     
     dataset, train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader = create_dataset(
-        config=config, datadir='/group/jug/ashesh/data/BioSR/', noisy_data= False, noisy_factor=0.1
+        config=config, datadir='/group/jug/ashesh/data/BioSR/', noisy_data= True, noisy_factor=0.1, gaus_factor=1000
     )
     create_model_and_train(config=config, logger=wandb, train_loader=train_loader, val_loader=val_loader, logdir=logdir)

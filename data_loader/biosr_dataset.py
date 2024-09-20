@@ -16,7 +16,7 @@ def downscale(data, shape):
 class BioSRDataLoader(Dataset):
     
     """Dataset class to load images from MRC files in multiple folders."""
-    def __init__(self, root_dir, patch_size=64, transform=None, resize_to_shape=None, noisy_data = False, noise_factor = 0.1):
+    def __init__(self, root_dir, patch_size=64, transform=None, resize_to_shape=None, noisy_data = False, noise_factor = 0.1, gaus_factor = 1000):
         """
         Args:
             root_dir (string): Root directory containing subdirectories of MRC files.
@@ -29,7 +29,8 @@ class BioSRDataLoader(Dataset):
         self.c2_data = read_mrc(os.path.join(self.root_dir, 'CCPs/', 'GT_all.mrc'), filetype='image')[1]
         self.patch_size = patch_size
         self.noisy_data = noisy_data
-        self.noise_factor = noise_factor       
+        self.noise_factor = noise_factor   
+        self.gaus_factor = gaus_factor    
         
        
         # Ensure c1_data and c2_data are NumPy arrays
@@ -78,8 +79,8 @@ class BioSRDataLoader(Dataset):
         input_image = sample1['image'] + sample2['image']
         
         if self.noisy_data:         
-            poisson_data = np.random.poisson(input_image / self.noise_factor) * self.noise_factor 
-            gaussian_data = np.random.normal(0, np.std(poisson_data), (poisson_data.shape)) #change the noise_factor and the standard deviation
+            poisson_data = np.random.poisson(input_image / self.noise_factor) * self.gaus_factor 
+            gaussian_data = np.random.normal(0, self.gaus_factor, (poisson_data.shape)) #change the noise_factor and the standard deviation
             input_image = poisson_data + gaussian_data 
         
         input_image = (input_image - np.min(input_image)) / (np.max(input_image) - np.min(input_image)) 
