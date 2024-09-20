@@ -62,5 +62,22 @@
         "_runtime": 46.127471723,
         "_step": 50,
         "val_psnr channel 2": 26.190393447875977
+    },
+    "axrpw20n": {
+        "val_loss_step": 0.0014699947787448764,
+        "train_psnr channel 1": 23.470603942871094,
+        "train_psnr channel 2": 26.234569549560547,
+        "trainer/global_step": 175,
+        "val_loss_epoch": 0.0018746579298749566,
+        "val_psnr channel 2": 26.937780380249023,
+        "loss_step": 0.002888574730604887,
+        "model_weights_filename": "axrpw20nswin2sr",
+        "_runtime": 57.747542317,
+        "epoch": 15,
+        "val_psnr channel 1": 26.558156967163086,
+        "_timestamp": 1726840097.2053404,
+        "_step": 64,
+        "loss_epoch": 0.0019271813798695803,
+        "Performance_Section": "\n    ### Run ID: axrpw20n\n    **Configuration:** LR: 0.001, Epochs: 400, Augmentations: True, Noisy_data: True, EarlyStopping and ReduceOnPlateau\n\n    #### Performance Metrics:\n    - **PSNR channel 1**: 26.558156967163086\n    - **PSNR channel 2**: 26.937780380249023\n    - ** val_loss **: 0.0018746579298749566\n    "
     }
 }

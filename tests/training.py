@@ -40,13 +40,13 @@ def create_dataset(config, datadir, kwargs_dict=None, noisy_data = False, noisy_
     train_dataset, val_dataset, test_dataset = random_split(dataset, [train_size, val_size, test_size])
 
     torch.manual_seed(42)
-    train_loader = DataLoader(train_dataset, batch_size=4, shuffle=True, num_workers=4)
+    train_loader = DataLoader(train_dataset, batch_size=2, shuffle=True, num_workers=4)
     
     torch.manual_seed(42)
-    val_loader = DataLoader(val_dataset, batch_size=4, shuffle=False, num_workers=4)
+    val_loader = DataLoader(val_dataset, batch_size=2, shuffle=False, num_workers=4)
     
     torch.manual_seed(42)
-    test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False, num_workers=4)
+    test_loader = DataLoader(test_dataset, batch_size=2, shuffle=False, num_workers=4)
     
     return dataset, train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader
 
@@ -56,12 +56,11 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
         "learning_rate": config.training.lr,
         "architecture": config.model.model_type,
         "dataset": "BioSRDataset",
-        "epochs": config.training.num_epochs
+        "epochs": config.training.num_epochs,
+        "size": config.data.image_size
     }
     config_str = f"LR: {args['learning_rate']}, Epochs: {args['epochs']}, Augmentations: True, Noisy_data: True, EarlyStopping and ReduceOnPlateau" 
-    
-    
-    print(f"Learning rate: {args['learning_rate']}")
+       
     
     # Get node or hostname for custom run name, #TODO changethe name
     node_name = os.environ.get('SLURMD_NODENAME', socket.gethostname())  
@@ -71,8 +70,11 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
     
     wandb_logger.experiment.config.update(config.to_dict())   
     model = Swin2SRModule(config)
+    
+    run_id = wandb_logger.experiment.id
+    
     # Define two callback functions for early stopping and learning rate reduction
-    model_filename = f'{run_id}swin2sr_epoch{trainer.current_epoch}_valloss{val_loss:.4f}.pth' if val_loss is not None else 'model.pth'
+    model_filename = f'{run_id}swin2sr_epoch_{args["epochs"]}_image_size_{args["size"]}'
 
     early_stopping = EarlyStopping(
         monitor='val_loss',  
@@ -110,7 +112,6 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
     psnr2 = trainer.callback_metrics.get("val_psnr channel 2", None)
     val_loss = trainer.callback_metrics.get("val_loss", None)
     
-    run_id = wandb_logger.experiment.id
     
     wandb_logger.experiment.summary["Performance_Section"] = f"""
     ### Run ID: {run_id}
@@ -119,6 +120,7 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
     #### Performance Metrics:
     - **PSNR channel 1**: {psnr1}
     - **PSNR channel 2**: {psnr2}
+    - ** val_loss **: {val_loss}
     """
     
     model_filename = f'{run_id}swin2sr'

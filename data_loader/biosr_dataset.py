@@ -4,7 +4,7 @@ import torch
 from data_loader.read_mrc import read_mrc
 from torch.utils.data import Dataset
 from skimage.transform import resize
-
+import matplotlib.pyplot as plt
 def downscale(data, shape):
     """
     HxWxC -> H/2 x W/2 x C
@@ -73,16 +73,17 @@ class BioSRDataLoader(Dataset):
 
         if self.transform:
             sample1 = self.transform(sample1)
-            sample2 = self.transform(sample2)           
+            sample2 = self.transform(sample2)          
                            
 
         input_image = sample1['image'] + sample2['image']
         
-        if self.noisy_data:         
-            poisson_data = np.random.poisson(input_image / self.noise_factor) * self.gaus_factor 
-            gaussian_data = np.random.normal(0, self.gaus_factor, (poisson_data.shape)) #change the noise_factor and the standard deviation
-            input_image = poisson_data + gaussian_data 
-        
+        if self.noisy_data:
+            poisson_data = np.random.poisson(input_image / .1) * 1000 
+            gaussian_data = np.random.normal(0,1000, (poisson_data.shape)) #change the noise_factor and the standard deviation
+            input_image = poisson_data + gaussian_data
+            
+                    
         input_image = (input_image - np.min(input_image)) / (np.max(input_image) - np.min(input_image)) 
         input_image = input_image.astype(np.float32)
         sample1['image'] = (sample1['image'] - self.c1_min) / (self.c1_max - self.c1_min)  # Min-Max Normalization
