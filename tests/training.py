@@ -6,6 +6,7 @@ import wandb
 import yaml
 import socket
 import json
+import matplotlib.pyplot as plt
 
 from torch.utils.data import DataLoader
 from pytorch_lightning.loggers import WandbLogger
