@@ -166,6 +166,6 @@ if __name__ == '__main__':
     config = get_config()
     
     dataset, train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader = create_dataset(
-        config=config, datadir='/group/jug/ashesh/data/BioSR/', noisy_data= True, noisy_factor=1000, gaus_factor=1000
+        config=config, datadir='/group/jug/ashesh/data/BioSR/', transform=True, noisy_data= True, noisy_factor=1000, gaus_factor=1000
     )
     create_model_and_train(config=config, logger=wandb, train_loader=train_loader, val_loader=val_loader, logdir=logdir)
