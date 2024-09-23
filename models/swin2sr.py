@@ -12,9 +12,9 @@ from core.model_type import ModelType
 import torchmetrics
 from skimage.metrics import peak_signal_noise_ratio as psnr
 from core.psnr import PSNR
-
+from utils.utils import set_global_seed
 from torch.optim.lr_scheduler import ReduceLROnPlateau
-
+set_global_seed(42)
 class Swin2SRModule(pl.LightningModule):
     def __init__(self, config):
         super(Swin2SRModule, self).__init__()

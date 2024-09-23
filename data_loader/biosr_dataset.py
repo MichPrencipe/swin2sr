@@ -5,6 +5,9 @@ from data_loader.read_mrc import read_mrc
 from torch.utils.data import Dataset
 from skimage.transform import resize
 import matplotlib.pyplot as plt
+from utils.utils import set_global_seed
+
+set_global_seed(42)
 def downscale(data, shape):
     """
     HxWxC -> H/2 x W/2 x C
@@ -72,7 +75,9 @@ class BioSRDataLoader(Dataset):
         sample2 = {'image': data_channel2}
 
         if self.transform:
+            torch.manual_seed(42)
             sample1 = self.transform(sample1)
+            torch.manual_seed(42)
             sample2 = self.transform(sample2)          
                            
 

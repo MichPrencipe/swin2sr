@@ -14,6 +14,17 @@ from tqdm import tqdm
 from IPython.display import clear_output
 from tifffile import imsave
 
+
+def set_global_seed(seed=42):
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    np.random.seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+
+set_global_seed(42)
+
 class Augmentations:
     def __init__(self):
         self.transforms = transforms.Compose([
@@ -22,6 +33,7 @@ class Augmentations:
         ])
 
     def random_flip(self, sample):
+        torch.manual_seed(42)
         img = sample['image']  # Access the image data from the dictionary
         if img.ndim == 3:  # Handle 3D images (e.g., color images)
             img = np.flip(img, axis=1)  # Flip horizontally
@@ -34,6 +46,7 @@ class Augmentations:
         return sample
 
     def random_rotation(self, sample):
+        torch.manual_seed(42)
         k = np.random.randint(0, 4)  # Randomly choose rotation angle: 90, 180, or 270 degrees
         img = sample['image']
         

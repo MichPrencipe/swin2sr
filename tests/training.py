@@ -16,19 +16,22 @@ from data_loader.biosr_dataset import BioSRDataLoader
 from configs.biosr_config import get_config
 from models.swin2sr import Swin2SRModule
 from utils.utils import Augmentations
+from utils.utils import set_global_seed
 from pytorch_lightning.callbacks import EarlyStopping
 from pytorch_lightning.callbacks import ModelCheckpoint
 
 
+set_global_seed(42)
 
 
 def create_dataset(config, datadir, kwargs_dict=None, noisy_data = False, noisy_factor = 0.1, gaus_factor = 1000):
     if kwargs_dict is None:
         kwargs_dict = {}
-        
+    
     resize_to_shape = (768, 768)
     
     augmentations = Augmentations() 
+    torch.manual_seed(42)
     dataset = BioSRDataLoader(root_dir=datadir, resize_to_shape=resize_to_shape, transform=augmentations, noisy_data=noisy_data, noise_factor=noisy_factor, gaus_factor=gaus_factor)
     
     train_ratio, val_ratio = 0.8, 0.1
@@ -36,17 +39,11 @@ def create_dataset(config, datadir, kwargs_dict=None, noisy_data = False, noisy_
     train_size = int(train_ratio * total_size)
     val_size = int(val_ratio * total_size)
     test_size = total_size - train_size - val_size
-
-    torch.manual_seed(42)
     train_dataset, val_dataset, test_dataset = random_split(dataset, [train_size, val_size, test_size])
-
+    
     torch.manual_seed(42)
     train_loader = DataLoader(train_dataset, batch_size=2, shuffle=True, num_workers=4)
-    
-    torch.manual_seed(42)
     val_loader = DataLoader(val_dataset, batch_size=2, shuffle=False, num_workers=4)
-    
-    torch.manual_seed(42)
     test_loader = DataLoader(test_dataset, batch_size=2, shuffle=False, num_workers=4)
     
     return dataset, train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader
@@ -60,7 +57,7 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
         "epochs": config.training.num_epochs,
         "size": config.data.image_size
     }
-    config_str = f"LR: {args['learning_rate']}, Epochs: {args['epochs']}, Augmentations: True, Noisy_data: True, EarlyStopping and ReduceOnPlateau" 
+    config_str = f"LR: {args['learning_rate']}, Epochs: {args['epochs']}, Augmentations: True, Noisy_data: False, EarlyStopping and ReduceOnPlateau" 
        
     
     # Get node or hostname for custom run name, #TODO changethe name
@@ -81,7 +78,7 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
         monitor='val_loss',  
         patience=50,    # How long to wait after last improvement
         #restore_best_weights=True,  # Automatically handled by PL's checkpoint system
-        mode='min'  )
+        mode='min')
     
         # Define ModelCheckpoint callback to save the best model
     checkpoint_callback = ModelCheckpoint(
@@ -99,7 +96,7 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
     trainer = pl.Trainer(
         max_epochs=400,
         logger=wandb_logger,
-        log_every_n_steps=150,
+        log_every_n_steps=1,
         check_val_every_n_epoch=1,
         precision=16,
         enable_progress_bar= True, 
@@ -161,6 +158,6 @@ if __name__ == '__main__':
     config = get_config()
     
     dataset, train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader = create_dataset(
-        config=config, datadir='/group/jug/ashesh/data/BioSR/', noisy_data= True, noisy_factor=0.1, gaus_factor=1000
+        config=config, datadir='/group/jug/ashesh/data/BioSR/', noisy_data= False, noisy_factor=1000, gaus_factor=1000
     )
     create_model_and_train(config=config, logger=wandb, train_loader=train_loader, val_loader=val_loader, logdir=logdir)
