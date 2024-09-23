@@ -3,7 +3,7 @@ import os
 import pickle
 from time import sleep
 
-from denoisplit.analysis.results_handler import PaperResultsHandler
+from analysis.results_handler import PaperResultsHandler
 
 
 def rnd(obj):
@@ -95,7 +95,7 @@ if __name__ == '__main__':
     ]
 
     for ckpt_dir in ckpt_dirs:
-        show(ckpt_dir, '/group/jug/ashesh/data/paper_stats/', only_test=True, skip_last_pixels=44)
+        show(ckpt_dir, '/group/jug/michele/data/paper_stats/', only_test=True, skip_last_pixels=44)
         sleep(1)
 
     # show(args.ckpt_dir, args.results_dir, only_test=True, skip_last_pixels=args.skip_last_pixels)

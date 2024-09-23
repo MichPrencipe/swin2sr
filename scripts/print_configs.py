@@ -2,8 +2,8 @@ import argparse
 import os
 import torch
 
-from denoisplit.config_utils import load_config
-from denoisplit.analysis.checkpoint_utils import get_best_checkpoint
+from utils.config_utils import load_config
+from analysis.checkpoint_utils import get_best_checkpoint
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

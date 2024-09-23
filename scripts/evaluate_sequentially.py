@@ -1,6 +1,6 @@
 import argparse
 
-from denoisplit.scripts.evaluate import save_hardcoded_ckpt_evaluations_to_file
+from scripts.evaluate import save_hardcoded_ckpt_evaluations_to_file
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

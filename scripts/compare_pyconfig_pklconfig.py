@@ -8,9 +8,9 @@ import ml_collections
 from absl import app, flags
 from ml_collections.config_flags import config_flags
 from requests import delete
-from denoisplit.scripts.compare_configs import (get_comparison_df, get_df_column_name, get_commit_key,
+from scripts.compare_configs import (get_comparison_df, get_df_column_name, get_commit_key,
                                                  get_changed_files, display_changes)
-from denoisplit.config_utils import load_config
+from utils.config_utils import load_config
 
 FLAGS = flags.FLAGS
 

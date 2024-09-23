@@ -82,16 +82,24 @@ class BioSRDataLoader(Dataset):
             poisson_data = np.random.poisson(input_image / .1) * 1000 
             gaussian_data = np.random.normal(0,1000, (poisson_data.shape)) #change the noise_factor and the standard deviation
             input_image = poisson_data + gaussian_data
+            input_image = (input_image - np.min(input_image)) / (np.max(input_image) - np.min(input_image)) 
+            input_image = input_image.astype(np.float32)
+            sample1['image'] = (sample1['image'] - self.c1_min) / (self.c1_max - self.c1_min)  # Min-Max Normalization
+            sample2['image'] = (sample2['image'] - self.c2_min) / (self.c2_max - self.c2_min)  # Min-Max Normalization
             
+            target = np.stack((sample1['image'], sample2['image']))        
+            target = target.astype(np.float32)        
+            return input_image, target
                     
-        input_image = (input_image - np.min(input_image)) / (np.max(input_image) - np.min(input_image)) 
-        input_image = input_image.astype(np.float32)
-        sample1['image'] = (sample1['image'] - self.c1_min) / (self.c1_max - self.c1_min)  # Min-Max Normalization
-        sample2['image'] = (sample2['image'] - self.c2_min) / (self.c2_max - self.c2_min)  # Min-Max Normalization
-        
-        target = np.stack((sample1['image'], sample2['image']))        
-        target = target.astype(np.float32)        
-        return input_image, target
+        else:    
+            input_image = (input_image - np.min(input_image)) / (np.max(input_image) - np.min(input_image)) 
+            input_image = input_image.astype(np.float32)
+            sample1['image'] = (sample1['image'] - self.c1_min) / (self.c1_max - self.c1_min)  # Min-Max Normalization
+            sample2['image'] = (sample2['image'] - self.c2_min) / (self.c2_max - self.c2_min)  # Min-Max Normalization
+            
+            target = np.stack((sample1['image'], sample2['image']))        
+            target = target.astype(np.float32)        
+            return input_image, target
     
     def get_normalization_params(self):
         return self.c1_min, self.c1_max, self.c2_min, self.c2_max   
