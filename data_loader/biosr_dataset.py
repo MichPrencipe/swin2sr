@@ -5,9 +5,7 @@ from data_loader.read_mrc import read_mrc
 from torch.utils.data import Dataset
 from skimage.transform import resize
 import matplotlib.pyplot as plt
-from utils.utils import set_global_seed
 
-set_global_seed(42)
 def downscale(data, shape):
     """
     HxWxC -> H/2 x W/2 x C
@@ -99,6 +97,13 @@ class BioSRDataLoader(Dataset):
     
     def get_normalization_params(self):
         return self.c1_min, self.c1_max, self.c2_min, self.c2_max   
+    
+    def patch_location(self, index):
+        # it just ignores the index and returns a random location
+        n_idx = np.random.randint(0,len(self.data))
+        h = np.random.randint(0, self.data.shape[1]-self.patch_size)
+        w = np.random.randint(0, self.data.shape[2]-self.patch_size)
+        return (n_idx, h, w)
    
 
     

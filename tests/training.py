@@ -24,15 +24,23 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 set_global_seed(42)
 
 
-def create_dataset(config, datadir, kwargs_dict=None, noisy_data = False, noisy_factor = 0.1, gaus_factor = 1000):
+def create_dataset(config, datadir, kwargs_dict=None, transform = None, noisy_data = False, noisy_factor = 0.1, gaus_factor = 1000):
     if kwargs_dict is None:
         kwargs_dict = {}
     
     resize_to_shape = (768, 768)
     
-    augmentations = Augmentations() 
-    torch.manual_seed(42)
-    dataset = BioSRDataLoader(root_dir=datadir, resize_to_shape=resize_to_shape, transform=augmentations, noisy_data=noisy_data, noise_factor=noisy_factor, gaus_factor=gaus_factor)
+    
+    if transform is not None:
+        torch.manual_seed(42)
+        transform = Augmentations()
+    
+    dataset = BioSRDataLoader(root_dir=datadir, 
+                              resize_to_shape=resize_to_shape,
+                              transform=transform,
+                              noisy_data=noisy_data,
+                              noise_factor=noisy_factor, 
+                              gaus_factor=gaus_factor)
     
     train_ratio, val_ratio = 0.8, 0.1
     total_size = len(dataset)
