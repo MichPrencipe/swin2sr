@@ -57,7 +57,7 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
         "epochs": config.training.num_epochs,
         "size": config.data.image_size
     }
-    config_str = f"LR: {args['learning_rate']}, Epochs: {args['epochs']}, Augmentations: True, Noisy_data: False, EarlyStopping and ReduceOnPlateau" 
+    config_str = f"LR: {args['learning_rate']}, Epochs: {args['epochs']}, Augmentations: True, Noisy_data: True, EarlyStopping and ReduceOnPlateau" 
        
     
     # Get node or hostname for custom run name, #TODO changethe name
@@ -158,6 +158,6 @@ if __name__ == '__main__':
     config = get_config()
     
     dataset, train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader = create_dataset(
-        config=config, datadir='/group/jug/ashesh/data/BioSR/', noisy_data= False, noisy_factor=1000, gaus_factor=1000
+        config=config, datadir='/group/jug/ashesh/data/BioSR/', noisy_data= True, noisy_factor=1000, gaus_factor=1000
     )
     create_model_and_train(config=config, logger=wandb, train_loader=train_loader, val_loader=val_loader, logdir=logdir)
