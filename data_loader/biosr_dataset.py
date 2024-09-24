@@ -82,7 +82,9 @@ class BioSRDataLoader(Dataset):
         input_image = sample1['image'] + sample2['image']
         
         if self.noisy_data:
+            torch.manual_seed(42)
             poisson_data = np.random.poisson(input_image / self.noise_factor) * self.noise_factor 
+            torch.manual_seed(42)
             gaussian_data = np.random.normal(0,self.gaus_factor, (poisson_data.shape)) #change the noise_factor and the standard deviation
             input_image = poisson_data + gaussian_data
         

@@ -68,7 +68,6 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
     config_str = f"LR: {args['learning_rate']}, Epochs: {args['epochs']}, Augmentations: True, Noisy_data: True, EarlyStopping and ReduceOnPlateau" 
        
     
-    # Get node or hostname for custom run name, #TODO changethe name
     node_name = os.environ.get('SLURMD_NODENAME', socket.gethostname())  
     
     # Initialize WandbLogger with a custom run name
@@ -102,7 +101,7 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
     
     # Define the Trainer
     trainer = pl.Trainer(
-        max_epochs=400,
+        max_epochs=100,
         logger=wandb_logger,
         log_every_n_steps=1,
         check_val_every_n_epoch=1,
@@ -166,6 +165,14 @@ if __name__ == '__main__':
     config = get_config()
     
     dataset, train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader = create_dataset(
-        config=config, datadir='/group/jug/ashesh/data/BioSR/', transform=True, noisy_data= True, noisy_factor=1000, gaus_factor=1000
+        config=config, 
+        datadir='/group/jug/ashesh/data/BioSR/',
+        transform=True, noisy_data= True, 
+        noisy_factor=1000, 
+        gaus_factor=5000
     )
-    create_model_and_train(config=config, logger=wandb, train_loader=train_loader, val_loader=val_loader, logdir=logdir)
+    create_model_and_train(config=config, 
+                           logger=wandb, 
+                           train_loader=train_loader, 
+                           val_loader=val_loader,
+                           logdir=logdir)
