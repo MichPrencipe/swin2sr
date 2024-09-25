@@ -50,9 +50,9 @@ def create_dataset(config, datadir, kwargs_dict=None, transform = None, noisy_da
     train_dataset, val_dataset, test_dataset = random_split(dataset, [train_size, val_size, test_size])
     
     torch.manual_seed(42)
-    train_loader = DataLoader(train_dataset, batch_size=2, shuffle=True, num_workers=4)
-    val_loader = DataLoader(val_dataset, batch_size=2, shuffle=False, num_workers=4)
-    test_loader = DataLoader(test_dataset, batch_size=2, shuffle=False, num_workers=4)
+    train_loader = DataLoader(train_dataset, batch_size=3, shuffle=True, num_workers=15)
+    val_loader = DataLoader(val_dataset, batch_size=3, shuffle=False, num_workers=15)
+    test_loader = DataLoader(test_dataset, batch_size=3, shuffle=False, num_workers=15)
     
     return dataset, train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader
 
@@ -101,7 +101,7 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
     
     # Define the Trainer
     trainer = pl.Trainer(
-        max_epochs=100,
+        max_epochs=400,
         logger=wandb_logger,
         log_every_n_steps=1,
         check_val_every_n_epoch=1,
@@ -169,7 +169,7 @@ if __name__ == '__main__':
         datadir='/group/jug/ashesh/data/BioSR/',
         transform=True, noisy_data= True, 
         noisy_factor=1000, 
-        gaus_factor=5000
+        gaus_factor=2000
     )
     create_model_and_train(config=config, 
                            logger=wandb, 

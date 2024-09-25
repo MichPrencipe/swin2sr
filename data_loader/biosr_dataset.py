@@ -38,14 +38,21 @@ class BioSRDataLoader(Dataset):
         if isinstance(self.c1_data, tuple):
             self.c1_data = np.array(self.c1_data)
         if isinstance(self.c2_data, tuple):
-            self.c2_data = np.array(self.c2_data)
+            self.c2_data = np.array(self.c2_data)        
 
         # Debug print to check the shape of the data
         if resize_to_shape is not None:
             print(f"Resizing to shape {resize_to_shape}. MUST BE REMOVED IN PRODUCTION!")
             self.c1_data = downscale(self.c1_data, resize_to_shape)
-            self.c2_data = downscale(self.c2_data, resize_to_shape)                
+            self.c2_data = downscale(self.c2_data, resize_to_shape)
         
+        if self.noisy_data:  
+            self.poisson_noise_channel_1 = np.random.poisson(self.c1_data / self.noise_factor) * self.noise_factor
+            self.gaussian_noise_channel_1= np.random.normal(0,self.gaus_factor, (self.poisson_noise_channel_1.shape))
+            self.poisson_noise_channel_2= np.random.poisson(self.c2_data / self.noise_factor) * self.noise_factor
+            self.gaussian_noise_channel_2 = np.random.normal(0,self.gaus_factor, (self.poisson_noise_channel_2.shape))
+            self.c1_data_noisy = self.poisson_noise_channel_1 + self.gaussian_noise_channel_1
+            self.c2_data_noisy = self.poisson_noise_channel_2 + self.gaussian_noise_channel_2                
         
         self.c1_min = np.min(self.c1_data) 
         self.c2_min = np.min(self.c2_data)
@@ -61,39 +68,51 @@ class BioSRDataLoader(Dataset):
         return min(self.c1_data.shape[-1], self.c2_data.shape[-1])
 
     def __getitem__(self, idx):
-        data_channel1 = self.c1_data[:, :, idx]
-        data_channel2 = self.c2_data[:, :, idx]        
-
-        # Convert data to float32 and normalize (example normalization)
+        
+        if self.noisy_data:            
+            data_channel1 = self.c1_data_noisy[:, :, idx]
+            data_channel2 = self.c2_data_noisy[:, :, idx]
+        else:                
+            data_channel1 = self.c1_data[:, :, idx]
+            data_channel2 = self.c2_data[:, :, idx]       
+           
         data_channel1 = data_channel1.astype(np.float32)
-        data_channel2 = data_channel2.astype(np.float32)
-
-
+        data_channel2 = data_channel2.astype(np.float32)   
+        
         sample1 = {'image': data_channel1}
         sample2 = {'image': data_channel2}
-
-        if self.transform:
-            torch.manual_seed(42)
-            sample1 = self.transform(sample1)
-            torch.manual_seed(42)
-            sample2 = self.transform(sample2)          
+                     
                            
 
         input_image = sample1['image'] + sample2['image']
         
-        if self.noisy_data:
-            torch.manual_seed(42)
-            poisson_data = np.random.poisson(input_image / self.noise_factor) * self.noise_factor 
-            torch.manual_seed(42)
-            gaussian_data = np.random.normal(0,self.gaus_factor, (poisson_data.shape)) #change the noise_factor and the standard deviation
-            input_image = poisson_data + gaussian_data
+        # if self.noisy_data:
+        #     poisson_data = np.random.poisson(input_image / self.noise_factor) * self.noise_factor 
+        #     gaussian_data = np.random.normal(0,self.gaus_factor, (poisson_data.shape)) #change the noise_factor and the standard deviation
+        #     input_image = poisson_data + gaussian_data
         
         input_image = (input_image - np.min(input_image)) / (np.max(input_image) - np.min(input_image)) 
-        input_image = input_image.astype(np.float32)
+        input_image = input_image.astype(np.float32)        
+        
+        data_channel1 = self.c1_data[:, :, idx]
+        data_channel2 = self.c2_data[:, :, idx]         
+        
+        data_channel1 = data_channel1.astype(np.float32)
+        data_channel2 = data_channel2.astype(np.float32)  
+        
+        sample1 = {'image': data_channel1}
+        sample2 = {'image': data_channel2}
+        
+        
+        if self.transform:
+            sample1 = self.transform(sample1)
+            sample2 = self.transform(sample2)  
+        
         sample1['image'] = (sample1['image'] - self.c1_min) / (self.c1_max - self.c1_min)  # Min-Max Normalization
         sample2['image'] = (sample2['image'] - self.c2_min) / (self.c2_max - self.c2_min)  # Min-Max Normalization
         
-        target = np.stack((sample1['image'], sample2['image']))        
+        target = np.stack(((sample1['image'], sample2['image'])))        
+        
         target = target.astype(np.float32)        
         return input_image, target
     
