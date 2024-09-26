@@ -16,6 +16,7 @@ def get_config():
     data.ch2_fname = 'CCPs/GT_all.mrc'
     data.num_channels = 2   
     data.poisson_noise_factor = 1000
+    data.gaussian_noise_factor = 2000
     
     data.enable_gaussian_noise = True
     data.trainig_datausage_fraction = 1.0

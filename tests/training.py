@@ -63,9 +63,11 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
         "architecture": config.model.model_type,
         "dataset": "BioSRDataset",
         "epochs": config.training.num_epochs,
-        "size": config.data.image_size
+        "size": config.data.image_size,
+        "poisson": config.data.poisson_noise_factor,
+        "gauss": config.data.gaussian_noise_factor
     }
-    config_str = f"LR: {args['learning_rate']}, Augmentations: True, Noisy_data: True, EarlyStopping and ReduceOnPlateau, Noisy:1000, Gaus:5000" 
+    config_str = f"LR: {args['learning_rate']}, Augmentations: True, Noisy_data: True, EarlyStopping and ReduceOnPlateau, Noisy:{args['poisson']}, Gaus:{args['gauss']}" 
        
     
     node_name = os.environ.get('SLURMD_NODENAME', socket.gethostname())  

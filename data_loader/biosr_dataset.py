@@ -46,6 +46,13 @@ class BioSRDataLoader(Dataset):
             self.c1_data = downscale(self.c1_data, resize_to_shape)
             self.c2_data = downscale(self.c2_data, resize_to_shape)                
         
+        if self.noisy_data:  
+            self.poisson_noise_channel_1 = np.random.poisson(self.c1_data / self.noise_factor) * self.noise_factor
+            self.gaussian_noise_channel_1= np.random.normal(0,self.gaus_factor, (self.poisson_noise_channel_1.shape))
+            self.poisson_noise_channel_2= np.random.poisson(self.c2_data / self.noise_factor) * self.noise_factor
+            self.gaussian_noise_channel_2 = np.random.normal(0,self.gaus_factor, (self.poisson_noise_channel_2.shape))
+            self.c1_data_noisy = self.poisson_noise_channel_1 + self.gaussian_noise_channel_1
+            self.c2_data_noisy = self.poisson_noise_channel_2 + self.gaussian_noise_channel_2    
         
         self.c1_min = np.min(self.c1_data) 
         self.c2_min = np.min(self.c2_data)
@@ -76,13 +83,17 @@ class BioSRDataLoader(Dataset):
             sample1 = self.transform(sample1)
             sample2 = self.transform(sample2)          
                            
-
-        input_image = sample1['image'] + sample2['image']
-        
         if self.noisy_data:
-            poisson_data = np.random.poisson(input_image / self.noise_factor) * self.noise_factor 
-            gaussian_data = np.random.normal(0,self.gaus_factor, (poisson_data.shape)) #change the noise_factor and the standard deviation
-            input_image = poisson_data + gaussian_data
+            data_channel1_noisy = self.c1_data_noisy[:, :, idx].astype(np.float32)
+            data_channel2_noisy = self.c2_data_noisy[:, :, idx].astype(np.float32)         
+            input_image = data_channel1_noisy+ data_channel2_noisy
+        else:
+            input_image = sample1['image'] + sample2['image']
+        
+        # if self.noisy_data:
+        #     poisson_data = np.random.poisson(input_image / self.noise_factor) * self.noise_factor 
+        #     gaussian_data = np.random.normal(0,self.gaus_factor, (poisson_data.shape)) #change the noise_factor and the standard deviation
+        #     input_image = poisson_data + gaussian_data
         
         input_image = (input_image - np.min(input_image)) / (np.max(input_image) - np.min(input_image)) 
         input_image = input_image.astype(np.float32)
