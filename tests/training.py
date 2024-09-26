@@ -24,7 +24,7 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 set_global_seed(42)
 
 
-def create_dataset(config, datadir, kwargs_dict=None, transform = None, noisy_data = False, noisy_factor = 0.1, gaus_factor = 1000):
+def create_dataset(config, datadir, kwargs_dict=None, transform = None, noisy_data = False, noisy_factor = 1000, gaus_factor = 1000):
     if kwargs_dict is None:
         kwargs_dict = {}
     
@@ -65,7 +65,7 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
         "epochs": config.training.num_epochs,
         "size": config.data.image_size
     }
-    config_str = f"LR: {args['learning_rate']}, Epochs: {args['epochs']}, Augmentations: True, Noisy_data: True, EarlyStopping and ReduceOnPlateau" 
+    config_str = f"LR: {args['learning_rate']}, Augmentations: True, Noisy_data: True, EarlyStopping and ReduceOnPlateau, Noisy:1000, Gaus:5000" 
        
     
     node_name = os.environ.get('SLURMD_NODENAME', socket.gethostname())  
@@ -169,7 +169,7 @@ if __name__ == '__main__':
         datadir='/group/jug/ashesh/data/BioSR/',
         transform=True, noisy_data= True, 
         noisy_factor=1000, 
-        gaus_factor=5000
+        gaus_factor=1000
     )
     create_model_and_train(config=config, 
                            logger=wandb, 

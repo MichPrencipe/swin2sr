@@ -17,7 +17,7 @@ def downscale(data, shape):
 class BioSRDataLoader(Dataset):
     
     """Dataset class to load images from MRC files in multiple folders."""
-    def __init__(self, root_dir, patch_size=64, transform=None, resize_to_shape=None, noisy_data = False, noise_factor = 0.1, gaus_factor = 1000):
+    def __init__(self, root_dir, patch_size=64, transform=None, resize_to_shape=None, noisy_data = False, noise_factor = 1000, gaus_factor = 2000):
         """
         Args:
             root_dir (string): Root directory containing subdirectories of MRC files.
@@ -73,18 +73,14 @@ class BioSRDataLoader(Dataset):
         sample2 = {'image': data_channel2}
 
         if self.transform:
-            torch.manual_seed(42)
             sample1 = self.transform(sample1)
-            torch.manual_seed(42)
             sample2 = self.transform(sample2)          
                            
 
         input_image = sample1['image'] + sample2['image']
         
         if self.noisy_data:
-            torch.manual_seed(42)
             poisson_data = np.random.poisson(input_image / self.noise_factor) * self.noise_factor 
-            torch.manual_seed(42)
             gaussian_data = np.random.normal(0,self.gaus_factor, (poisson_data.shape)) #change the noise_factor and the standard deviation
             input_image = poisson_data + gaussian_data
         
