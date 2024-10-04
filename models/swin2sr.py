@@ -47,6 +47,7 @@ class Swin2SRModule(pl.LightningModule):
         for ch_idx in range(outputs.shape[1]):
             if ch_idx == 0:
                 data_range = targets[:, ch_idx].max() -  targets[:,ch_idx].min() 
+                
             else:
                 data_range = targets[:, ch_idx].max() -  targets[:, ch_idx].min()
             psnr_arr[ch_idx].append(PSNR(targets[:, ch_idx], outputs[:, ch_idx], range_= data_range))  
@@ -54,6 +55,7 @@ class Swin2SRModule(pl.LightningModule):
         self.log("loss", loss, on_step=True, on_epoch=True)
         self.log('train_psnr channel 1', np.mean(psnr_arr[0]), prog_bar=False, logger=True)
         self.log('train_psnr channel 2', np.mean(psnr_arr[1]), prog_bar=False, logger=True)
+        
         
         return loss
 
@@ -73,7 +75,7 @@ class Swin2SRModule(pl.LightningModule):
         psnr_arr = { 0: [] , 1: []}
         for ch_idx in range(outputs.shape[1]):
             if ch_idx == 0:
-                data_range = targets[:, ch_idx].max() -  targets[:,ch_idx].min() 
+                data_range = targets[:, ch_idx].max() -  targets[:,ch_idx].min()
             else:
                 data_range = targets[:, ch_idx].max() -  targets[:, ch_idx].min()
             psnr_arr[ch_idx].append(PSNR(targets[:, ch_idx], outputs[:, ch_idx], range_= data_range))        

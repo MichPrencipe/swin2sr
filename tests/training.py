@@ -7,6 +7,10 @@ import yaml
 import socket
 import json
 import matplotlib.pyplot as plt
+from tqdm import tqdm
+from IPython.display import display
+
+from pytorch_lightning.callbacks import TQDMProgressBar
 
 from torch.utils.data import DataLoader
 from pytorch_lightning.loggers import WandbLogger
@@ -24,23 +28,24 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 set_global_seed(42)
 
 
-def create_dataset(config, datadir, kwargs_dict=None, transform = None, noisy_data = False, noisy_factor = 1000, gaus_factor = 1000):
+def create_dataset(config, datadir, kwargs_dict=None,
+                   transform = None, noisy_data = False, noisy_factor = 1000, gaus_factor = 1000, tiling_manager = None):
     if kwargs_dict is None:
         kwargs_dict = {}
     
-    resize_to_shape = (768, 768)
+    resize_to_shape = (256, 256)
     
     
     if transform is not None:
-        torch.manual_seed(42)
-        transform = Augmentations()
+        transform = Augmentations()        
     
     dataset = BioSRDataLoader(root_dir=datadir, 
-                              resize_to_shape=resize_to_shape,
-                              transform=transform,
-                              noisy_data=noisy_data,
-                              noise_factor=noisy_factor, 
-                              gaus_factor=gaus_factor)
+                            resize_to_shape=resize_to_shape,
+                            transform=transform,
+                            noisy_data=noisy_data,
+                            noise_factor=noisy_factor, 
+                            gaus_factor=gaus_factor,
+                            )
     
     train_ratio, val_ratio = 0.8, 0.1
     total_size = len(dataset)
@@ -103,12 +108,13 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
     
     # Define the Trainer
     trainer = pl.Trainer(
-        max_epochs=100,
+        max_epochs=10,
         logger=wandb_logger,
-        log_every_n_steps=1,
         check_val_every_n_epoch=1,
+        log_every_n_steps=1,
         precision=16,
-        enable_progress_bar= True, 
+        enable_progress_bar= True,
+        progress_bar_refresh_rating = 20, 
         callbacks = callbacks
     )    
     # Train the model
@@ -171,7 +177,7 @@ if __name__ == '__main__':
         datadir='/group/jug/ashesh/data/BioSR/',
         transform=True, noisy_data= True, 
         noisy_factor=1000, 
-        gaus_factor=1000
+        gaus_factor=2000
     )
     create_model_and_train(config=config, 
                            logger=wandb, 
