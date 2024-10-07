@@ -14,10 +14,11 @@ def downscale(data, shape):
     new_shape = (*shape, data.shape[-1])
     return resize(data*1.0, new_shape).astype(dtype)
 
-class BioSRDataLoader(Dataset):
+class BioSRDataLoader(Dataset):    
+    
     
     """Dataset class to load images from MRC files in multiple folders."""
-    def __init__(self, root_dir, patch_size=64, transform=None, resize_to_shape=None, noisy_data = False, noise_factor = 0.1, gaus_factor = 1000):
+    def __init__(self, root_dir, patch_size=64, transform=None, resize_to_shape=None, noisy_data = False, noise_factor = 1000, gaus_factor = 2000):
         """
         Args:
             root_dir (string): Root directory containing subdirectories of MRC files.
@@ -28,6 +29,8 @@ class BioSRDataLoader(Dataset):
         self.transform = transform
         self.c1_data = read_mrc(os.path.join(self.root_dir, 'ER/', 'GT_all.mrc'), filetype='image')[1]
         self.c2_data = read_mrc(os.path.join(self.root_dir, 'CCPs/', 'GT_all.mrc'), filetype='image')[1]
+        self.c1_data_noisy = read_mrc(os.path.join(self.root_dir, 'ER/', 'GT_all.mrc'), filetype='image')[1]
+        self.c2_data_noisy = read_mrc(os.path.join(self.root_dir, 'CCPs/', 'GT_all.mrc'), filetype='image')[1]
         self.patch_size = patch_size
         self.noisy_data = noisy_data
         self.noise_factor = noise_factor   
@@ -38,13 +41,13 @@ class BioSRDataLoader(Dataset):
         if isinstance(self.c1_data, tuple):
             self.c1_data = np.array(self.c1_data)
         if isinstance(self.c2_data, tuple):
-            self.c2_data = np.array(self.c2_data)        
+            self.c2_data = np.array(self.c2_data)
 
         # Debug print to check the shape of the data
         if resize_to_shape is not None:
             print(f"Resizing to shape {resize_to_shape}. MUST BE REMOVED IN PRODUCTION!")
             self.c1_data = downscale(self.c1_data, resize_to_shape)
-            self.c2_data = downscale(self.c2_data, resize_to_shape)
+            self.c2_data = downscale(self.c2_data, resize_to_shape)                
         
         if self.noisy_data:  
             self.poisson_noise_channel_1 = np.random.poisson(self.c1_data / self.noise_factor) * self.noise_factor
@@ -52,7 +55,7 @@ class BioSRDataLoader(Dataset):
             self.poisson_noise_channel_2= np.random.poisson(self.c2_data / self.noise_factor) * self.noise_factor
             self.gaussian_noise_channel_2 = np.random.normal(0,self.gaus_factor, (self.poisson_noise_channel_2.shape))
             self.c1_data_noisy = self.poisson_noise_channel_1 + self.gaussian_noise_channel_1
-            self.c2_data_noisy = self.poisson_noise_channel_2 + self.gaussian_noise_channel_2                
+            self.c2_data_noisy = self.poisson_noise_channel_2 + self.gaussian_noise_channel_2    
         
         self.c1_min = np.min(self.c1_data) 
         self.c2_min = np.min(self.c2_data)
@@ -68,51 +71,52 @@ class BioSRDataLoader(Dataset):
         return min(self.c1_data.shape[-1], self.c2_data.shape[-1])
 
     def __getitem__(self, idx):
+        h, w, n_idx = self.patch_location(idx)
         
-        if self.noisy_data:            
-            data_channel1 = self.c1_data_noisy[:, :, idx]
-            data_channel2 = self.c2_data_noisy[:, :, idx]
-        else:                
-            data_channel1 = self.c1_data[:, :, idx]
-            data_channel2 = self.c2_data[:, :, idx]       
-           
+        data_channel1 = self.c1_data[h:h+self.patch_size,w:w+self.patch_size, n_idx]
+        data_channel2 = self.c2_data[h:h+self.patch_size,w:w+self.patch_size, n_idx] 
+        
+        #data_channel1 = self.c1_data[:, :, idx]
+        #data_channel2 = self.c2_data[:, :, idx]  
+        
+        #data_channel1_noisy = self.c1_data_noisy[:, :, idx].astype(np.float32)
+        #data_channel2_noisy = self.c2_data_noisy[:, :, idx].astype(np.float32)
+        
+
+        # Convert data to float32 and normalize (example normalization)
         data_channel1 = data_channel1.astype(np.float32)
-        data_channel2 = data_channel2.astype(np.float32)   
-        
+        data_channel2 = data_channel2.astype(np.float32)
+
+
         sample1 = {'image': data_channel1}
         sample2 = {'image': data_channel2}
-                     
+        #noisy_sample_1 = {'image': data_channel1_noisy}
+        #noisy_sample_2 = {'image': data_channel2_noisy}        
+        
+        #if self.transform:
+            #transformed = self.transform(image = sample1['image'], image0=sample2['image'], noisy_image_1=noisy_sample_1['image'], noisy_image_2=noisy_sample_2['image'])
+            
+            #sample1['image'] = transformed['image']
+            #sample2['image'] = transformed['image0']
+            #noisy_sample_1['image'] = transformed['noisy_image_1']
+            #noisy_sample_2['image'] = transformed['noisy_image_2'] 
                            
-
+        # if self.noisy_data:
+        #     input_image = noisy_sample_1['image'] + noisy_sample_2['image']
+        # else:
         input_image = sample1['image'] + sample2['image']
         
         # if self.noisy_data:
-        #     poisson_data = np.random.poisson(input_image / self.noise_factor) * self.noise_factor 
-        #     gaussian_data = np.random.normal(0,self.gaus_factor, (poisson_data.shape)) #change the noise_factor and the standard deviation
-        #     input_image = poisson_data + gaussian_data
+        #       poisson_data = np.random.poisson(input_image / self.noise_factor) * self.noise_factor 
+        #       gaussian_data = np.random.normal(0,self.gaus_factor, (poisson_data.shape)) #change the noise_factor and the standard deviation
+        #       input_image = poisson_data + gaussian_data
         
         input_image = (input_image - np.min(input_image)) / (np.max(input_image) - np.min(input_image)) 
-        input_image = input_image.astype(np.float32)        
-        
-        data_channel1 = self.c1_data[:, :, idx]
-        data_channel2 = self.c2_data[:, :, idx]         
-        
-        data_channel1 = data_channel1.astype(np.float32)
-        data_channel2 = data_channel2.astype(np.float32)  
-        
-        sample1 = {'image': data_channel1}
-        sample2 = {'image': data_channel2}
-        
-        
-        if self.transform:
-            sample1 = self.transform(sample1)
-            sample2 = self.transform(sample2)  
-        
+        input_image = input_image.astype(np.float32)
         sample1['image'] = (sample1['image'] - self.c1_min) / (self.c1_max - self.c1_min)  # Min-Max Normalization
         sample2['image'] = (sample2['image'] - self.c2_min) / (self.c2_max - self.c2_min)  # Min-Max Normalization
         
-        target = np.stack(((sample1['image'], sample2['image'])))        
-        
+        target = np.stack((sample1['image'], sample2['image']))        
         target = target.astype(np.float32)        
         return input_image, target
     
@@ -121,10 +125,12 @@ class BioSRDataLoader(Dataset):
     
     def patch_location(self, index):
         # it just ignores the index and returns a random location
-        n_idx = np.random.randint(0,len(self.data))
-        h = np.random.randint(0, self.data.shape[1]-self.patch_size)
-        w = np.random.randint(0, self.data.shape[2]-self.patch_size)
-        return (n_idx, h, w)
+        n_idx = np.random.randint(0,len(self))
+        h = np.random.randint(0, self.c1_data.shape[0]-self.patch_size) #TODO chiedere ad Ashesh se in caso in cui i due channels hanno size differenti
+        w = np.random.randint(0, self.c1_data.shape[1]-self.patch_size)
+        return (h, w, n_idx)
    
+    
+    
 
     
