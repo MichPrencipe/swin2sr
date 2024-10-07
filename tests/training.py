@@ -29,10 +29,10 @@ set_global_seed(42)
 
 
 def create_dataset(config, datadir, kwargs_dict=None,
-                   transform = None, noisy_data = False, noisy_factor = 1000, gaus_factor = 1000, tiling_manager = None):
+                   transform = None, noisy_data = True, noisy_factor = 1000, gaus_factor = 1000, tiling_manager = None):
     if kwargs_dict is None:
         kwargs_dict = {}    
-    resize_to_shape = (256, 256)
+    resize_to_shape = (1004, 1004)
     
     
     if transform is not None:
@@ -71,7 +71,7 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
         "poisson": config.data.poisson_noise_factor,
         "gauss": config.data.gaussian_noise_factor
     }
-    config_str = f"LR: {args['learning_rate']}, Augmentations: True, Noisy_data: True, EarlyStopping and ReduceOnPlateau, Noisy:{args['poisson']}, Gaus:{args['gauss']}" 
+    config_str = f"LR: {args['learning_rate']}, Augmentations: True, Noisy_data: True, Noisy:{args['poisson']}, Gaus:{args['gauss']}" 
        
     
     node_name = os.environ.get('SLURMD_NODENAME', socket.gethostname())  
@@ -85,7 +85,7 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
     run_id = wandb_logger.experiment.id
     
     # Define two callback functions for early stopping and learning rate reduction
-    model_filename = f'{run_id}swin2sr_epoch_{args["epochs"]}_image_size_{args["size"]}'
+    model_filename = f'{run_id}swin2sr_epoch_{args["epochs"]}_image_size_{args["size"]}, '
 
     early_stopping = EarlyStopping(
         monitor='val_loss',  
@@ -107,7 +107,7 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
     
     # Define the Trainer
     trainer = pl.Trainer(
-        max_epochs=10,
+        max_epochs=400,
         logger=wandb_logger,
         check_val_every_n_epoch=1,
         log_every_n_steps=1,

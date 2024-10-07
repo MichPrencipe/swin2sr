@@ -39,10 +39,8 @@ class Swin2SRModule(pl.LightningModule):
         
         outputs = self.forward(inputs)   
         loss = self.criterion(outputs, targets)
-        print(loss)
         outputs = outputs.cpu().detach().numpy()
         targets = targets.cpu().detach().numpy()  
-        print(targets.shape)      
         psnr_arr = { 0: [] , 1: []}
         for ch_idx in range(outputs.shape[1]):
             if ch_idx == 0:
@@ -56,7 +54,6 @@ class Swin2SRModule(pl.LightningModule):
         self.log('train_psnr channel 1', np.mean(psnr_arr[0]), prog_bar=False, logger=True)
         self.log('train_psnr channel 2', np.mean(psnr_arr[1]), prog_bar=False, logger=True)
         
-        
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -67,8 +64,7 @@ class Swin2SRModule(pl.LightningModule):
             targets = targets.unsqueeze(1)
 
         outputs = self.forward(inputs)
-        val_loss = self.criterion(outputs, targets)       
-        print(val_loss)
+        val_loss = self.criterion(outputs, targets)     
         outputs = outputs.cpu().detach().numpy()
         targets = targets.cpu().detach().numpy()
         
