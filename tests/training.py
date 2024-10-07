@@ -31,8 +31,7 @@ set_global_seed(42)
 def create_dataset(config, datadir, kwargs_dict=None,
                    transform = None, noisy_data = False, noisy_factor = 1000, gaus_factor = 1000, tiling_manager = None):
     if kwargs_dict is None:
-        kwargs_dict = {}
-    
+        kwargs_dict = {}    
     resize_to_shape = (256, 256)
     
     
@@ -114,7 +113,6 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
         log_every_n_steps=1,
         precision=16,
         enable_progress_bar= True,
-        progress_bar_refresh_rating = 20, 
         callbacks = callbacks
     )    
     # Train the model

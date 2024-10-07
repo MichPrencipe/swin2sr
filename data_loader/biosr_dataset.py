@@ -71,10 +71,10 @@ class BioSRDataLoader(Dataset):
         return min(self.c1_data.shape[-1], self.c2_data.shape[-1])
 
     def __getitem__(self, idx):
-        n_idx, h, w = self.patch_location(idx)
+        n_idx,h, w = self.patch_location(idx)
         
         data_channel1 = self.c1_data[h:h+self.patch_size,w:w+self.patch_size, n_idx]
-        data_channel2 = self.c1_data[h:h+self.patch_size,w:w+self.patch_size, n_idx] 
+        data_channel2 = self.c2_data[h:h+self.patch_size,w:w+self.patch_size, n_idx] 
         
         #data_channel1 = self.c1_data[:, :, idx]
         #data_channel2 = self.c2_data[:, :, idx]  
@@ -93,11 +93,11 @@ class BioSRDataLoader(Dataset):
         #noisy_sample_1 = {'image': data_channel1_noisy}
         #noisy_sample_2 = {'image': data_channel2_noisy}        
         
-        if self.transform:
-            transformed = self.transform(image = sample1['image'], image0=sample2['image'], noisy_image_1=noisy_sample_1['image'], noisy_image_2=noisy_sample_2['image'])
+        #if self.transform:
+            #transformed = self.transform(image = sample1['image'], image0=sample2['image'], noisy_image_1=noisy_sample_1['image'], noisy_image_2=noisy_sample_2['image'])
             
-            sample1['image'] = transformed['image']
-            sample2['image'] = transformed['image0']
+            #sample1['image'] = transformed['image']
+            #sample2['image'] = transformed['image0']
             #noisy_sample_1['image'] = transformed['noisy_image_1']
             #noisy_sample_2['image'] = transformed['noisy_image_2'] 
                            

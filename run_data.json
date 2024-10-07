@@ -232,5 +232,39 @@
         "_runtime": 40.123031994,
         "val_psnr channel 1": 23.871740341186523,
         "model_weights_filename": "zkvyvgz7swin2sr"
+    },
+    "tszr6qx0": {
+        "train_psnr channel 1": 21.612640380859375,
+        "train_psnr channel 2": 22.10531234741211,
+        "epoch": 9,
+        "_step": 269,
+        "val_psnr channel 1": 22.66653823852539,
+        "_runtime": 25.985985339,
+        "model_weights_filename": "tszr6qx0swin2sr",
+        "loss_step": 0.00449566263705492,
+        "_timestamp": 1728289916.7246697,
+        "val_loss_step": 0.013945424929261208,
+        "val_loss_epoch": 0.00548460241407156,
+        "val_psnr channel 2": 23.51056480407715,
+        "trainer/global_step": 219,
+        "loss_epoch": 0.007292618043720722,
+        "Performance_Section": "\n    ### Run ID: tszr6qx0\n    **Configuration:** LR: 0.001, Augmentations: True, Noisy_data: True, EarlyStopping and ReduceOnPlateau, Noisy:1000, Gaus:2000\n\n    #### Performance Metrics:\n    - **PSNR channel 1**: 22.66653823852539\n    - **PSNR channel 2**: 23.51056480407715\n    - ** val_loss **: 0.00548460241407156\n    "
+    },
+    "05uhnpqo": {
+        "train_psnr channel 2": 22.10531234741211,
+        "val_psnr channel 1": 22.66653823852539,
+        "trainer/global_step": 219,
+        "_runtime": 25.395326328,
+        "loss_step": 0.00449566263705492,
+        "train_psnr channel 1": 21.612640380859375,
+        "val_loss_step": 0.013945424929261208,
+        "Performance_Section": "\n    ### Run ID: 05uhnpqo\n    **Configuration:** LR: 0.001, Augmentations: True, Noisy_data: True, EarlyStopping and ReduceOnPlateau, Noisy:1000, Gaus:2000\n\n    #### Performance Metrics:\n    - **PSNR channel 1**: 22.66653823852539\n    - **PSNR channel 2**: 23.51056480407715\n    - ** val_loss **: 0.00548460241407156\n    ",
+        "model_weights_filename": "05uhnpqoswin2sr",
+        "epoch": 9,
+        "_step": 269,
+        "val_loss_epoch": 0.00548460241407156,
+        "val_psnr channel 2": 23.51056480407715,
+        "loss_epoch": 0.007292618043720722,
+        "_timestamp": 1728294322.3162534
     }
 }
