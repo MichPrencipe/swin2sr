@@ -28,7 +28,7 @@ def create_dataset(config, datadir, kwargs_dict=None, transform = None, noisy_da
     if kwargs_dict is None:
         kwargs_dict = {}
     
-    resize_to_shape = (768, 768)
+    resize_to_shape = (1004, 1004)
     
     
     if transform is not None:
@@ -50,9 +50,9 @@ def create_dataset(config, datadir, kwargs_dict=None, transform = None, noisy_da
     train_dataset, val_dataset, test_dataset = random_split(dataset, [train_size, val_size, test_size])
     
     torch.manual_seed(42)
-    train_loader = DataLoader(train_dataset, batch_size=3, shuffle=True, num_workers=15)
-    val_loader = DataLoader(val_dataset, batch_size=3, shuffle=False, num_workers=15)
-    test_loader = DataLoader(test_dataset, batch_size=3, shuffle=False, num_workers=15)
+    train_loader = DataLoader(train_dataset, batch_size=1, shuffle=True, num_workers=15)
+    val_loader = DataLoader(val_dataset, batch_size=1, shuffle=False, num_workers=15)
+    test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False, num_workers=15)
     
     return dataset, train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader
 
