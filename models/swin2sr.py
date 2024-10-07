@@ -39,10 +39,8 @@ class Swin2SRModule(pl.LightningModule):
         
         outputs = self.forward(inputs)   
         loss = self.criterion(outputs, targets)
-        print(loss)
         outputs = outputs.cpu().detach().numpy()
-        targets = targets.cpu().detach().numpy()  
-        print(targets.shape)      
+        targets = targets.cpu().detach().numpy()     
         psnr_arr = { 0: [] , 1: []}
         for ch_idx in range(outputs.shape[1]):
             if ch_idx == 0:

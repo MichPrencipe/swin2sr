@@ -65,7 +65,7 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
         "epochs": config.training.num_epochs,
         "size": config.data.image_size
     }
-    config_str = f"LR: {args['learning_rate']}, Epochs: {args['epochs']}, Augmentations: True, Noisy_data: True, EarlyStopping and ReduceOnPlateau" 
+    config_str = f"LR: {args['learning_rate']}, Epochs: {args['epochs']}, Augmentations: True, Noisy_data: True" 
        
     
     node_name = os.environ.get('SLURMD_NODENAME', socket.gethostname())  
