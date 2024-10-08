@@ -24,7 +24,7 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 set_global_seed(42)
 
 
-def create_dataset(config, datadir, kwargs_dict=None, transform = None, noisy_data = False, noisy_factor = 0.1, gaus_factor = 1000):
+def create_dataset(config, datadir, kwargs_dict=None, transform = None, noisy_data = False, noisy_factor = 0.1, gaus_factor = 1000, patch_size = 256):
     if kwargs_dict is None:
         kwargs_dict = {}
     
@@ -40,7 +40,8 @@ def create_dataset(config, datadir, kwargs_dict=None, transform = None, noisy_da
                               transform=transform,
                               noisy_data=noisy_data,
                               noise_factor=noisy_factor, 
-                              gaus_factor=gaus_factor)
+                              gaus_factor=gaus_factor,
+                              patch_size=patch_size)
     
     train_ratio, val_ratio = 0.8, 0.1
     total_size = len(dataset)
@@ -50,9 +51,9 @@ def create_dataset(config, datadir, kwargs_dict=None, transform = None, noisy_da
     train_dataset, val_dataset, test_dataset = random_split(dataset, [train_size, val_size, test_size])
     
     torch.manual_seed(42)
-    train_loader = DataLoader(train_dataset, batch_size=1, shuffle=True, num_workers=15)
-    val_loader = DataLoader(val_dataset, batch_size=1, shuffle=False, num_workers=15)
-    test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False, num_workers=15)
+    train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True, num_workers=15)
+    val_loader = DataLoader(val_dataset, batch_size=8, shuffle=False, num_workers=15)
+    test_loader = DataLoader(test_dataset, batch_size=8, shuffle=False, num_workers=15)
     
     return dataset, train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader
 
@@ -65,7 +66,7 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
         "epochs": config.training.num_epochs,
         "size": config.data.image_size
     }
-    config_str = f"LR: {args['learning_rate']}, Epochs: {args['epochs']}, Augmentations: True, Noisy_data: True" 
+    config_str = f"LR: {args['learning_rate']}, Epochs: {args['epochs']}, Augmentations: True, Noisy_data: False" 
        
     
     node_name = os.environ.get('SLURMD_NODENAME', socket.gethostname())  
@@ -169,7 +170,8 @@ if __name__ == '__main__':
         datadir='/group/jug/ashesh/data/BioSR/',
         transform=True, noisy_data= True, 
         noisy_factor=1000, 
-        gaus_factor=2000
+        gaus_factor=1000,
+        patch_size = 256
     )
     create_model_and_train(config=config, 
                            logger=wandb, 

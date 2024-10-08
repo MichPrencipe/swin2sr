@@ -79,5 +79,39 @@
         "_step": 64,
         "loss_epoch": 0.0019271813798695803,
         "Performance_Section": "\n    ### Run ID: axrpw20n\n    **Configuration:** LR: 0.001, Epochs: 400, Augmentations: True, Noisy_data: True, EarlyStopping and ReduceOnPlateau\n\n    #### Performance Metrics:\n    - **PSNR channel 1**: 26.558156967163086\n    - **PSNR channel 2**: 26.937780380249023\n    - ** val_loss **: 0.0018746579298749566\n    "
+    },
+    "onmea3dr": {
+        "epoch": 12,
+        "val_psnr channel 1": 8.229049682617188,
+        "Performance_Section": "\n    ### Run ID: onmea3dr\n    **Configuration:** LR: 0.001, Epochs: 400, Augmentations: True, Noisy_data: True\n\n    #### Performance Metrics:\n    - **PSNR channel 1**: 8.229049682617188\n    - **PSNR channel 2**: -inf\n    - ** val_loss **: 0.007058214396238327\n    ",
+        "train_psnr channel 2": 24.83001708984375,
+        "_runtime": 55.540860135,
+        "_step": 648,
+        "trainer/global_step": 558,
+        "_timestamp": 1728372289.211614,
+        "val_loss_step": 0.0016016426961869001,
+        "loss_epoch": 0.005204363260418177,
+        "train_psnr channel 1": -12.272533416748047,
+        "loss_step": 0.0007251843344420195,
+        "val_loss_epoch": 0.007058214396238327,
+        "val_psnr channel 2": -Infinity,
+        "model_weights_filename": "onmea3drswin2sr"
+    },
+    "et3y0g9k": {
+        "_timestamp": 1728374640.9919953,
+        "loss_step": 0.004106441978365183,
+        "val_loss_step": 0.007154119201004505,
+        "train_psnr channel 2": 27.511638641357422,
+        "_runtime": 595.764764895,
+        "val_loss_epoch": 0.007154119201004505,
+        "val_psnr channel 1": 23.537397384643555,
+        "Performance_Section": "\n    ### Run ID: et3y0g9k\n    **Configuration:** LR: 0.001, Epochs: 400, Augmentations: True, Noisy_data: True\n\n    #### Performance Metrics:\n    - **PSNR channel 1**: 23.537397384643555\n    - **PSNR channel 2**: 27.383563995361328\n    - ** val_loss **: 0.007154119201004505\n    ",
+        "model_weights_filename": "et3y0g9kswin2sr",
+        "epoch": 221,
+        "train_psnr channel 1": 22.28537940979004,
+        "_step": 1331,
+        "val_psnr channel 2": 27.383563995361328,
+        "loss_epoch": 0.004025954753160477,
+        "trainer/global_step": 665
     }
 }

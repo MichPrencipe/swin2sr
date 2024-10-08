@@ -71,7 +71,7 @@ class BioSRDataLoader(Dataset):
         return min(self.c1_data.shape[-1], self.c2_data.shape[-1])
 
     def __getitem__(self, idx):
-        h, w, n_idx = self.patch_location(idx)
+        n_idx, h, w = self.patch_location(idx)
         
         data_channel1 = self.c1_data[h:h+self.patch_size,w:w+self.patch_size, n_idx]
         data_channel2 = self.c2_data[h:h+self.patch_size,w:w+self.patch_size, n_idx] 
@@ -126,9 +126,9 @@ class BioSRDataLoader(Dataset):
     def patch_location(self, index):
         # it just ignores the index and returns a random location
         n_idx = np.random.randint(0,len(self))
-        h = np.random.randint(0, self.c1_data.shape[0]-self.patch_size) #TODO chiedere ad Ashesh se in caso in cui i due channels hanno size differenti
+        h = np.random.randint(0, self.c1_data.shape[0]-self.patch_size) 
         w = np.random.randint(0, self.c1_data.shape[1]-self.patch_size)
-        return (h, w, n_idx)
+        return (n_idx, h, w)
    
     
     
