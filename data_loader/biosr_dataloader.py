@@ -14,7 +14,7 @@ def downscale(data, shape):
     new_shape = (*shape, data.shape[-1])
     return resize(data*1.0, new_shape).astype(dtype)
 
-class BioSRDataLoader(Dataset):    
+class BioSRDataLoaderNoPatching(Dataset):    
     
     
     """Dataset class to load images from MRC files in multiple folders."""
@@ -74,16 +74,16 @@ class BioSRDataLoader(Dataset):
         return min(self.c1_data.shape[-1], self.c2_data.shape[-1])
 
     def __getitem__(self, idx):
-        n_idx, h, w = self.patch_location(idx)
+        # n_idx, h, w = self.patch_location(idx)
         
-        data_channel1 = self.c1_data[h:h+self.patch_size,w:w+self.patch_size, n_idx]
-        data_channel2 = self.c2_data[h:h+self.patch_size,w:w+self.patch_size, n_idx] 
+        # data_channel1 = self.c1_data[h:h+self.patch_size,w:w+self.patch_size, n_idx]
+        # data_channel2 = self.c2_data[h:h+self.patch_size,w:w+self.patch_size, n_idx] 
         
-        #data_channel1 = self.c1_data[:, :, idx]
-        #data_channel2 = self.c2_data[:, :, idx]  
+        data_channel1 = self.c1_data[:, :, idx]
+        data_channel2 = self.c2_data[:, :, idx]  
         
-        #data_channel1_noisy = self.c1_data_noisy[:, :, idx].astype(np.float32)
-        #data_channel2_noisy = self.c2_data_noisy[:, :, idx].astype(np.float32)
+        data_channel1_noisy = self.c1_data_noisy[:, :, idx].astype(np.float32)
+        data_channel2_noisy = self.c2_data_noisy[:, :, idx].astype(np.float32)
         
 
         # Convert data to float32 and normalize (example normalization)
@@ -93,26 +93,21 @@ class BioSRDataLoader(Dataset):
 
         sample1 = {'image': data_channel1}
         sample2 = {'image': data_channel2}
-        #noisy_sample_1 = {'image': data_channel1_noisy}
-        #noisy_sample_2 = {'image': data_channel2_noisy}        
+        noisy_sample_1 = {'image': data_channel1_noisy}
+        noisy_sample_2 = {'image': data_channel2_noisy}        
         
-        #if self.transform:
-            #transformed = self.transform(image = sample1['image'], image0=sample2['image'], noisy_image_1=noisy_sample_1['image'], noisy_image_2=noisy_sample_2['image'])
+        if self.transform:
+            transformed = self.transform(image = sample1['image'], image0=sample2['image'], noisy_image_1=noisy_sample_1['image'], noisy_image_2=noisy_sample_2['image'])
             
-            #sample1['image'] = transformed['image']
-            #sample2['image'] = transformed['image0']
-            #noisy_sample_1['image'] = transformed['noisy_image_1']
-            #noisy_sample_2['image'] = transformed['noisy_image_2'] 
+            sample1['image'] = transformed['image']
+            sample2['image'] = transformed['image0']
+            noisy_sample_1['image'] = transformed['noisy_image_1']
+            noisy_sample_2['image'] = transformed['noisy_image_2'] 
                            
-        # if self.noisy_data:
-        #     input_image = noisy_sample_1['image'] + noisy_sample_2['image']
-        # else:
-        input_image = sample1['image'] + sample2['image']
-        
-        # if self.noisy_data:
-        #       poisson_data = np.random.poisson(input_image / self.noise_factor) * self.noise_factor 
-        #       gaussian_data = np.random.normal(0,self.gaus_factor, (poisson_data.shape)) #change the noise_factor and the standard deviation
-        #       input_image = poisson_data + gaussian_data
+        if self.noisy_data:
+            input_image = noisy_sample_1['image'] + noisy_sample_2['image']
+        else:
+            input_image = sample1['image'] + sample2['image']
         
         input_image = (input_image - self.input_min) / (self.input_max - self.input_min) 
         input_image = input_image.astype(np.float32)
