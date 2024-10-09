@@ -96,13 +96,13 @@ class BioSRDataLoader(Dataset):
         #noisy_sample_1 = {'image': data_channel1_noisy}
         #noisy_sample_2 = {'image': data_channel2_noisy}        
         
-        #if self.transform:
-            #transformed = self.transform(image = sample1['image'], image0=sample2['image'], noisy_image_1=noisy_sample_1['image'], noisy_image_2=noisy_sample_2['image'])
+        if self.transform:
+            transformed = self.transform(image = sample1['image'], image0=sample2['image']) #, noisy_image_1=noisy_sample_1['image'], noisy_image_2=noisy_sample_2['image'])
             
-            #sample1['image'] = transformed['image']
-            #sample2['image'] = transformed['image0']
-            #noisy_sample_1['image'] = transformed['noisy_image_1']
-            #noisy_sample_2['image'] = transformed['noisy_image_2'] 
+            sample1['image'] = transformed['image']
+            sample2['image'] = transformed['image0']
+            # noisy_sample_1['image'] = transformed['noisy_image_1']
+            # noisy_sample_2['image'] = transformed['noisy_image_2'] 
                            
         # if self.noisy_data:
         #     input_image = noisy_sample_1['image'] + noisy_sample_2['image']

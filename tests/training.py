@@ -24,19 +24,19 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 set_global_seed(42)
 
 
-def create_dataset(config, datadir, kwargs_dict=None, transform = None, noisy_data = False, noisy_factor = 0.1, gaus_factor = 1000, patch_size = 256):
+def create_dataset(config, datadir, kwargs_dict=None, transform = True, noisy_data = False, noisy_factor = 0.1, gaus_factor = 1000, patch_size = 256):
     if kwargs_dict is None:
         kwargs_dict = {}
     
     resize_to_shape = (1004, 1004)
     
     
-    if transform is not None:
+    if transform:
         torch.manual_seed(42)
         transform = Augmentations()
     
     dataset = BioSRDataLoader(root_dir=datadir, 
-                              resize_to_shape=resize_to_shape,
+                              resize_to_shape=None,
                               transform=transform,
                               noisy_data=noisy_data,
                               noise_factor=noisy_factor, 
@@ -84,7 +84,7 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
 
     early_stopping = EarlyStopping(
         monitor='val_loss',  
-        patience=50,    # How long to wait after last improvement
+        patience=350,    # How long to wait after last improvement
         #restore_best_weights=True,  # Automatically handled by PL's checkpoint system
         mode='min')
     
@@ -169,7 +169,7 @@ if __name__ == '__main__':
         config=config, 
         datadir='/group/jug/ashesh/data/BioSR/',
         transform=True, 
-        noisy_data= True, 
+        noisy_data= False, 
         noisy_factor=1000, 
         gaus_factor=1000,
         patch_size = 256
