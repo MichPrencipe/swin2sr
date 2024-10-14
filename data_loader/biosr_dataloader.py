@@ -27,7 +27,7 @@ def load_data(data_type, mode='Train'):
 
 class SplitDataset(Dataset):    
     """Dataset class to load images from MRC files in multiple folders."""
-    def __init__(self, patch_size=64, data_type='biosr', transform=None, noisy_data = False, noise_factor = 1000, gaus_factor = 2000, mode = 'Train'): #TODO
+    def __init__(self, patch_size=64, data_type='biosr', transform=None, noisy_data = False, noise_factor = 1000, gaus_factor = 2000, mode = 'Test'): #TODO
         """
         Args:
             root_dir (string): Root directory containing subdirectories of MRC files.
@@ -37,8 +37,8 @@ class SplitDataset(Dataset):
         self.transform = transform     
         self.mode = mode   
         
-        self.c1_data = load_data(data_type=data_type, mode = 'Train')[..., 0:1]
-        self.c2_data = load_data(data_type=data_type, mode = 'Train')[..., 1:2]
+        self.c1_data = load_data(data_type=data_type, mode = self.mode)[..., 0:1]
+        self.c2_data = load_data(data_type=data_type, mode = self.mode)[..., 1:2]
         
         self.c1_data = np.squeeze(self.c1_data, axis = -1)
         self.c2_data = np.squeeze(self.c2_data, axis = -1)
@@ -135,8 +135,6 @@ class SplitDataset(Dataset):
         return (n_idx, h, w)
    
     
-    
-
 
 if __name__ == '__main__':
     dataset = SplitDataset(mode='Train', patch_size=512, data_type='biosr', noisy_data=True)

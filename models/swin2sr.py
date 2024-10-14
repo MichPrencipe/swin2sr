@@ -88,7 +88,7 @@ class Swin2SRModule(pl.LightningModule):
         
         # Set up ReduceLROnPlateau scheduler
         scheduler = {
-            'scheduler': ReduceLROnPlateau(optimizer, mode='max', factor=.1, patience=20, min_lr=1e-6),
+            'scheduler': ReduceLROnPlateau(optimizer, mode='min', factor=.1, patience=50, min_lr=1e-6),
             'monitor': 'val_loss',  # Metric to monitor (same as in Keras)
             'interval': 'epoch',
             'frequency': 1  # Call the scheduler every epoch

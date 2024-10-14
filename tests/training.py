@@ -46,12 +46,19 @@ def create_dataset(config, transform = True, noisy_data = False, noisy_factor = 
                               gaus_factor=gaus_factor,
                               patch_size=patch_size,
                               mode = 'Val')
-    
-    #TODO aggiungere testloader??
+    test_dataset = SplitDataset(
+                              transform=transform,
+                              data_type= config.data.data_type,
+                              noisy_data=noisy_data,
+                              noise_factor=noisy_factor, 
+                              gaus_factor=gaus_factor,
+                              patch_size=patch_size,
+                              mode = 'Test')
     
     train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True, num_workers=15)
-    val_loader = DataLoader(val_dataset, batch_size=8, shuffle=False, num_workers=15)
-    return train_loader, val_loader 
+    val_loader = DataLoader(val_dataset, batch_size=8, shuffle=False, num_workers=15)    
+    test_loader = DataLoader(test_dataset, batch_size=8, shuffle=False, num_workers=15)
+    return train_loader, val_loader , test_loader
 
 
 def create_model_and_train(config, logger, train_loader, val_loader, logdir): 
@@ -160,13 +167,13 @@ if __name__ == '__main__':
     logdir = 'tesi/transformer/swin2sr/logdir'
     wandb.login()
     config = get_config()
-    
+    print(config.data.data_type)
     train_loader, val_loader= create_dataset(
         config=config, 
         transform=True, 
-        noisy_data= True, 
-        noisy_factor=1000, 
-        gaus_factor=3400,
+        noisy_data= False, 
+        noisy_factor=0, 
+        gaus_factor=0,
         patch_size = 256,
     )
     create_model_and_train(config=config, 
