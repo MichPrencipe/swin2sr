@@ -9,7 +9,7 @@ def get_config():
     config = get_default_config()
     data = config.data
     data.image_size = 256
-    data.data_type = DataType.BioSR_MRC
+    data.data_type = 'biosr'
     # data.channel_1 = 0
     # data.channel_2 = 1
     data.ch1_fname = 'ER/GT_all.mrc'

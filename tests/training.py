@@ -19,9 +19,7 @@ from utils.utils import Augmentations
 from utils.utils import set_global_seed
 from pytorch_lightning.callbacks import EarlyStopping
 from pytorch_lightning.callbacks import ModelCheckpoint
-from data_loader.biosr_dataloader import BioSRDataloader
-from data_loader.hagen_dataloader import HagenDataloader
-
+from data_loader.biosr_dataloader import SplitDataset
 
 set_global_seed(42)
 
@@ -32,15 +30,17 @@ def create_dataset(config, transform = True, noisy_data = False, noisy_factor = 
         torch.manual_seed(42)
         transform = Augmentations()
     
-    train_dataset = BioSRDataloader(
+    train_dataset = SplitDataset(
                               transform=transform,
+                              data_type= config.data.data_type,
                               noisy_data=noisy_data,
                               noise_factor=noisy_factor, 
                               gaus_factor=gaus_factor,
                               patch_size=patch_size,
                               mode = 'Train')
-    val_dataset = BioSRDataloader(
+    val_dataset = SplitDataset(
                               transform=transform,
+                              data_type= config.data.data_type,
                               noisy_data=noisy_data,
                               noise_factor=noisy_factor, 
                               gaus_factor=gaus_factor,
