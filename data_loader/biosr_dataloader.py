@@ -6,90 +6,83 @@ from torch.utils.data import Dataset
 from skimage.transform import resize
 import matplotlib.pyplot as plt
 
-def downscale(data, shape):
-    """
-    HxWxC -> H/2 x W/2 x C
-    """
-    dtype = data.dtype
-    new_shape = (*shape, data.shape[-1])
-    return resize(data*1.0, new_shape).astype(dtype)
 
-class BioSRDataLoaderNoPatching(Dataset):    
+class BioSRDataloader(Dataset):    
     
+    def biosrdataloader(self, directory=None, mode='Train'):
+        if mode == 'Train':
+            train = np.load(os.path.join(directory, 'train_data.npy'))
+            return train
+        elif mode =='Val':
+            val = np.load(os.path.join(directory, 'val_data.npy'))
+            return val
+        elif mode =='Test':
+            test = np.load(os.path.join(directory, 'test_data.npy'))
+            return test
     
     """Dataset class to load images from MRC files in multiple folders."""
-    def __init__(self, root_dir, patch_size=64, transform=None, resize_to_shape=None, noisy_data = False, noise_factor = 1000, gaus_factor = 2000): #TODO
+    def __init__(self, patch_size=64, transform=None, noisy_data = False, noise_factor = 1000, gaus_factor = 2000, mode = 'Train'): #TODO
         """
         Args:
             root_dir (string): Root directory containing subdirectories of MRC files.
             transform (callable, optional): Optional transform to be applied on a sample.
             resize_to_shape: For development, we can downscale the data to fit in the meomory constraints
         """
-        self.root_dir = root_dir
-        self.transform = transform
-        self.c1_data = read_mrc(os.path.join(self.root_dir, 'ER/', 'GT_all.mrc'), filetype='image')[1]
-        self.c2_data = read_mrc(os.path.join(self.root_dir, 'CCPs/', 'GT_all.mrc'), filetype='image')[1]
-        self.c1_data_noisy = read_mrc(os.path.join(self.root_dir, 'ER/', 'GT_all.mrc'), filetype='image')[1]
-        self.c2_data_noisy = read_mrc(os.path.join(self.root_dir, 'CCPs/', 'GT_all.mrc'), filetype='image')[1]
+        self.transform = transform     
+        self.mode = mode   
+        
+        self.c1_data_biosr = self.biosrdataloader(directory = '/group/jug/ashesh/TrainValTestSplit/biosr', mode = 'Train')[..., 0:1]
+        self.c2_data_biosr = self.biosrdataloader(directory = '/group/jug/ashesh/TrainValTestSplit/biosr', mode = 'Train')[..., 1:2]
+        
+        self.c1_data_biosr = np.squeeze(self.c1_data_biosr, axis = -1)
+        self.c2_data_biosr = np.squeeze(self.c2_data_biosr, axis = -1)
+
+        self.c1_data_biosr = np.transpose(self.c1_data_biosr, (1,2,0))
+        self.c2_data_biosr = np.transpose(self.c2_data_biosr, (1,2,0))
+        
         self.patch_size = patch_size
         self.noisy_data = noisy_data
         self.noise_factor = noise_factor   
-        self.gaus_factor = gaus_factor    
+        self.gaus_factor = gaus_factor           
+             
         
-       
-        # Ensure c1_data and c2_data are NumPy arrays
-        if isinstance(self.c1_data, tuple):
-            self.c1_data = np.array(self.c1_data)
-        if isinstance(self.c2_data, tuple):
-            self.c2_data = np.array(self.c2_data)
-
-        # Debug print to check the shape of the data
-        if resize_to_shape is not None:
-            print(f"Resizing to shape {resize_to_shape}. MUST BE REMOVED IN PRODUCTION!")
-            self.c1_data = downscale(self.c1_data, resize_to_shape)
-            self.c2_data = downscale(self.c2_data, resize_to_shape)                
-        
-        if self.noisy_data:  
-            self.poisson_noise_channel_1 = np.random.poisson(self.c1_data / self.noise_factor) * self.noise_factor
+        if self.noisy_data: 
+            self.poisson_noise_channel_1 = np.random.poisson(self.c1_data_biosr / self.noise_factor) * self.noise_factor
             self.gaussian_noise_channel_1= np.random.normal(0,self.gaus_factor, (self.poisson_noise_channel_1.shape))
-            self.poisson_noise_channel_2= np.random.poisson(self.c2_data / self.noise_factor) * self.noise_factor
+            self.poisson_noise_channel_2= np.random.poisson(self.c2_data_biosr / self.noise_factor) * self.noise_factor
             self.gaussian_noise_channel_2 = np.random.normal(0,self.gaus_factor, (self.poisson_noise_channel_2.shape))
             self.c1_data_noisy = self.poisson_noise_channel_1 + self.gaussian_noise_channel_1
             self.c2_data_noisy = self.poisson_noise_channel_2 + self.gaussian_noise_channel_2    
+        if noisy_data:            
+            self.c1_min = np.min(self.c1_data_noisy) 
+            self.c2_min = np.min(self.c2_data_noisy)
+            self.c1_max = np.max(self.c1_data_noisy)
+            self.c2_max = np.max(self.c2_data_noisy)
+        else:
+            self.c1_min = np.min(self.c1_data_biosr) 
+            self.c2_min = np.min(self.c2_data_biosr)
+            self.c1_max = np.max(self.c1_data_biosr)
+            self.c2_max = np.max(self.c2_data_biosr) 
+        self.input_min = np.min(self.c1_data_biosr[:,:,:self.c1_data_biosr.shape[-1]]+self.c2_data_biosr[:, :, :self.c1_data_biosr.shape[-1]])
+        self.input_max = np.max(self.c1_data_biosr[:,:,:self.c2_data_biosr.shape[-1]]+self.c2_data_biosr[:, :,:self.c2_data_biosr.shape[-1]]) #TODO da cambiare trovare un modeo per trovare la lunghezza
         
-        self.c1_min = np.min(self.c1_data) 
-        self.c2_min = np.min(self.c2_data)
-        self.c1_max = np.max(self.c1_data)
-        self.c2_max = np.max(self.c2_data) #TODO 
-        self.input_min = np.min(self.c1_data[:,:,:54]+self.c2_data[:, :, :54])
-        self.input_max = np.max(self.c1_data[:,:, :54]+self.c2_data[:, :, :54])
+        print("Norm Param: ", self.c1_min, self.c2_min, self.c1_max, self.c2_max,self.input_max, self.input_min)
         
-        print("Norm Param: ", self.c1_min, self.c2_min, self.c1_max, self.c2_max)
-        
-        print(f"c1_data shape: {self.c1_data.shape}")
-        print(f"c2_data shape: {self.c2_data.shape}")
+        print(f"c1_data shape: {self.c1_data_biosr.shape}")
+        print(f"c2_data shape: {self.c2_data_biosr.shape}")
         
     def __len__(self):
         # Use the first dimension to determine the number of images
-        return min(self.c1_data.shape[-1], self.c2_data.shape[-1])
+        return min(self.c1_data_biosr.shape[-1], self.c2_data_biosr.shape[-1])
 
     def __getitem__(self, idx):
-        # n_idx, h, w = self.patch_location(idx)
+        n_idx, h, w = self.patch_location(idx)
         
-        # data_channel1 = self.c1_data[h:h+self.patch_size,w:w+self.patch_size, n_idx]
-        # data_channel2 = self.c2_data[h:h+self.patch_size,w:w+self.patch_size, n_idx] 
+        data_channel1 = self.c1_data_biosr[h:h+self.patch_size,w:w+self.patch_size, n_idx].astype(np.float32)
+        data_channel2 = self.c2_data_biosr[h:h+self.patch_size,w:w+self.patch_size, n_idx].astype(np.float32) 
         
-        data_channel1 = self.c1_data[:, :, idx]
-        data_channel2 = self.c2_data[:, :, idx]  
-        
-        data_channel1_noisy = self.c1_data_noisy[:, :, idx].astype(np.float32)
-        data_channel2_noisy = self.c2_data_noisy[:, :, idx].astype(np.float32)
-        
-
-        # Convert data to float32 and normalize (example normalization)
-        data_channel1 = data_channel1.astype(np.float32)
-        data_channel2 = data_channel2.astype(np.float32)
-
+        data_channel1_noisy = self.c1_data_noisy[h:h+self.patch_size,w:w+self.patch_size, n_idx].astype(np.float32)
+        data_channel2_noisy = self.c2_data_noisy[h:h+self.patch_size,w:w+self.patch_size, n_idx].astype(np.float32)
 
         sample1 = {'image': data_channel1}
         sample2 = {'image': data_channel2}
@@ -124,8 +117,8 @@ class BioSRDataLoaderNoPatching(Dataset):
     def patch_location(self, index):
         # it just ignores the index and returns a random location
         n_idx = np.random.randint(0,len(self))
-        h = np.random.randint(0, self.c1_data.shape[0]-self.patch_size) 
-        w = np.random.randint(0, self.c1_data.shape[1]-self.patch_size)
+        h = np.random.randint(0, self.c1_data_biosr.shape[0]-self.patch_size) 
+        w = np.random.randint(0, self.c1_data_biosr.shape[1]-self.patch_size)
         return (n_idx, h, w)
    
     

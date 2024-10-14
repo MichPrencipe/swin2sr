@@ -19,43 +19,39 @@ from utils.utils import Augmentations
 from utils.utils import set_global_seed
 from pytorch_lightning.callbacks import EarlyStopping
 from pytorch_lightning.callbacks import ModelCheckpoint
+from data_loader.biosr_dataloader import BioSRDataloader
+from data_loader.hagen_dataloader import HagenDataloader
 
 
 set_global_seed(42)
 
 
-def create_dataset(config, datadir, kwargs_dict=None, transform = True, noisy_data = False, noisy_factor = 0.1, gaus_factor = 1000, patch_size = 256):
-    if kwargs_dict is None:
-        kwargs_dict = {}
-    
-    resize_to_shape = (1004, 1004)
-    
-    
+def create_dataset(config, transform = True, noisy_data = False, noisy_factor = 0, gaus_factor = 3400, patch_size = 256):
+       
     if transform:
         torch.manual_seed(42)
         transform = Augmentations()
     
-    dataset = BioSRDataLoader(root_dir=datadir, 
-                              resize_to_shape=None,
+    train_dataset = BioSRDataloader(
                               transform=transform,
                               noisy_data=noisy_data,
                               noise_factor=noisy_factor, 
                               gaus_factor=gaus_factor,
-                              patch_size=patch_size)
+                              patch_size=patch_size,
+                              mode = 'Train')
+    val_dataset = BioSRDataloader(
+                              transform=transform,
+                              noisy_data=noisy_data,
+                              noise_factor=noisy_factor, 
+                              gaus_factor=gaus_factor,
+                              patch_size=patch_size,
+                              mode = 'Val')
     
-    train_ratio, val_ratio = 0.8, 0.1
-    total_size = len(dataset)
-    train_size = int(train_ratio * total_size)
-    val_size = int(val_ratio * total_size)
-    test_size = total_size - train_size - val_size
-    train_dataset, val_dataset, test_dataset = random_split(dataset, [train_size, val_size, test_size])
+    #TODO aggiungere testloader??
     
-    torch.manual_seed(42)
     train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True, num_workers=15)
     val_loader = DataLoader(val_dataset, batch_size=8, shuffle=False, num_workers=15)
-    test_loader = DataLoader(test_dataset, batch_size=8, shuffle=False, num_workers=15)
-    
-    return dataset, train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader
+    return train_loader, val_loader 
 
 
 def create_model_and_train(config, logger, train_loader, val_loader, logdir): 
@@ -84,7 +80,7 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
 
     early_stopping = EarlyStopping(
         monitor='val_loss',  
-        patience=350,    # How long to wait after last improvement
+        patience=500,    # How long to wait after last improvement
         #restore_best_weights=True,  # Automatically handled by PL's checkpoint system
         mode='min')
     
@@ -102,7 +98,7 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
     
     # Define the Trainer
     trainer = pl.Trainer(
-        max_epochs=400,
+        max_epochs=1000,
         logger=wandb_logger,
         log_every_n_steps=1,
         check_val_every_n_epoch=1,
@@ -165,14 +161,13 @@ if __name__ == '__main__':
     wandb.login()
     config = get_config()
     
-    dataset, train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader = create_dataset(
+    train_loader, val_loader= create_dataset(
         config=config, 
-        datadir='/group/jug/ashesh/data/BioSR/',
         transform=True, 
-        noisy_data= False, 
+        noisy_data= True, 
         noisy_factor=1000, 
-        gaus_factor=1000,
-        patch_size = 256
+        gaus_factor=3400,
+        patch_size = 256,
     )
     create_model_and_train(config=config, 
                            logger=wandb, 
