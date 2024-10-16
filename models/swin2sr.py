@@ -63,8 +63,7 @@ class Swin2SRModule(pl.LightningModule):
             targets = targets.unsqueeze(1)
 
         outputs = self.forward(inputs)
-        val_loss = self.criterion(outputs, targets)       
-        print(val_loss)
+        val_loss = self.criterion(outputs, targets)
         outputs = outputs.cpu().detach().numpy()
         targets = targets.cpu().detach().numpy()
         

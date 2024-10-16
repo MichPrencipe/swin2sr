@@ -25,9 +25,9 @@ def load_data(data_type, mode='Train'):
     else:
         raise ValueError('Invalid mode')
 
-class SplitDataset(Dataset):    
+class NoPatchingSplitDataset(Dataset):    
     """Dataset class to load images from MRC files in multiple folders."""
-    def __init__(self, patch_size=64, data_type='biosr', transform=None, noisy_data = False, noise_factor = 1000, gaus_factor = 2000, mode = 'Train'): #TODO
+    def __init__(self, patch_size=64, data_type='biosr', transform=None, noisy_data = False, noise_factor = 1000, gaus_factor = 2000, mode = 'Test'): #TODO
         """
         Args:
             root_dir (string): Root directory containing subdirectories of MRC files.
@@ -60,7 +60,7 @@ class SplitDataset(Dataset):
                 self.poisson_noise_channel_1 = np.random.poisson(self.c1_data / self.noise_factor) * self.noise_factor
                 self.poisson_noise_channel_2= np.random.poisson(self.c2_data / self.noise_factor) * self.noise_factor
                 
-            self.gaussian_noise_channel_1= np.random.normal(0,self.gaus_factor, (self.poisson_noise_channel_1.shape))
+            self.gaussian_noise_channel_1= np.random.normal(0,self.gaus_factor, (self.poisson_noise_channel_1.shape))            
             self.gaussian_noise_channel_2 = np.random.normal(0,self.gaus_factor, (self.poisson_noise_channel_2.shape))
             self.c1_data_noisy = self.poisson_noise_channel_1 + self.gaussian_noise_channel_1
             self.c2_data_noisy = self.poisson_noise_channel_2 + self.gaussian_noise_channel_2          
@@ -86,16 +86,20 @@ class SplitDataset(Dataset):
         return min(self.c1_data.shape[-1], self.c2_data.shape[-1])
 
     def __getitem__(self, idx):
-        n_idx, h, w = self.patch_location(idx)
-        data_channel1 = self.c1_data[h:h+self.patch_size,w:w+self.patch_size, n_idx].astype(np.float32)
-        data_channel2 = self.c2_data[h:h+self.patch_size,w:w+self.patch_size, n_idx].astype(np.float32) 
+    #     n_idx, h, w = self.patch_location(idx)
+    #     data_channel1 = self.c1_data[h:h+self.patch_size,w:w+self.patch_size, n_idx].astype(np.float32)
+    #     data_channel2 = self.c2_data[h:h+self.patch_size,w:w+self.patch_size, n_idx].astype(np.float32) 
+    
+        data_channel1=self.c1_data[:,:,idx].astype(np.float32)
+        data_channel2=self.c2_data[:,:,idx].astype(np.float32)
+        
 
         sample1 = {'image': data_channel1}
         sample2 = {'image': data_channel2}
 
         if self.noisy_data:
-            data_channel1_noisy = self.c1_data_noisy[h:h+self.patch_size,w:w+self.patch_size, n_idx].astype(np.float32)
-            data_channel2_noisy = self.c2_data_noisy[h:h+self.patch_size,w:w+self.patch_size, n_idx].astype(np.float32)
+            data_channel1_noisy = self.c1_data_noisy[:,:,idx].astype(np.float32)
+            data_channel2_noisy = self.c2_data_noisy[:,:,idx].astype(np.float32)
             noisy_sample_1 = {'image': data_channel1_noisy}
             noisy_sample_2 = {'image': data_channel2_noisy}        
         
@@ -140,7 +144,7 @@ class SplitDataset(Dataset):
     
 
 if __name__ == '__main__':
-    dataset = SplitDataset(mode='Train', patch_size=512, data_type='biosr', noisy_data=True)
+    dataset = NoPatchingSplitDataset(mode='Train', patch_size=512, data_type='biosr', noisy_data=True)
     print(len(dataset))
     inp, tar = dataset[0]
     import matplotlib.pyplot as plt

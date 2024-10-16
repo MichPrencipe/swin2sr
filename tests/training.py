@@ -55,9 +55,9 @@ def create_dataset(config, transform = True, noisy_data = False, noisy_factor = 
                               patch_size=patch_size,
                               mode = 'Test')
     
-    train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True, num_workers=15)
-    val_loader = DataLoader(val_dataset, batch_size=8, shuffle=False, num_workers=15)    
-    test_loader = DataLoader(test_dataset, batch_size=8, shuffle=False, num_workers=15)
+    train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True, num_workers=4)
+    val_loader = DataLoader(val_dataset, batch_size=16, shuffle=False, num_workers=4)    
+    test_loader = DataLoader(test_dataset, batch_size=2, shuffle=False, num_workers=4)
     return train_loader, val_loader , test_loader
 
 
@@ -69,7 +69,7 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
         "epochs": config.training.num_epochs,
         "size": config.data.image_size
     }
-    config_str = f"LR: {args['learning_rate']}, Epochs: {args['epochs']}, Augmentations: True, Noisy_data: False" 
+    config_str = f"LR: {args['learning_rate']},BIOSR DATA, Noisy_data:poisson:1000,gaussian:13600" 
        
     
     node_name = os.environ.get('SLURMD_NODENAME', socket.gethostname())  
@@ -167,13 +167,12 @@ if __name__ == '__main__':
     logdir = 'tesi/transformer/swin2sr/logdir'
     wandb.login()
     config = get_config()
-    print(config.data.data_type)
-    train_loader, val_loader= create_dataset(
+    train_loader, val_loader, test_loader= create_dataset(
         config=config, 
         transform=True, 
-        noisy_data= False, 
-        noisy_factor=0, 
-        gaus_factor=0,
+        noisy_data= True, 
+        noisy_factor=1000, 
+        gaus_factor=13600,
         patch_size = 256,
     )
     create_model_and_train(config=config, 
