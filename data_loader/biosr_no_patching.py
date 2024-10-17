@@ -36,13 +36,12 @@ class NoPatchingSplitDataset(Dataset):
         """
         self.transform = transform     
         self.mode = mode   
+        self.data_type = data_type  
         
-        self.c1_data = load_data(data_type=data_type, mode = self.mode)[..., 0:1]
-        self.c2_data = load_data(data_type=data_type, mode = self.mode)[..., 1:2]
+        self.data = load_data(data_type=data_type, mode = self.mode)
         
-        self.c1_data = np.squeeze(self.c1_data, axis = -1)
-        self.c2_data = np.squeeze(self.c2_data, axis = -1)
-
+        self.c1_data = self.data[...,0]
+        self.c2_data = self.data[...,1]
         self.c1_data = np.transpose(self.c1_data, (1,2,0))
         self.c2_data = np.transpose(self.c2_data, (1,2,0))
         
@@ -83,7 +82,10 @@ class NoPatchingSplitDataset(Dataset):
         
     def __len__(self):
         # Use the first dimension to determine the number of images
-        return min(self.c1_data.shape[-1], self.c2_data.shape[-1])
+        nrows = self.c1_data.shape[0]//self.patch_size
+        ncols = self.c1_data.shape[1]//self.patch_size
+        nframes = min(self.c1_data.shape[-1], self.c2_data.shape[-1]) 
+        return nframes
 
     def __getitem__(self, idx):
     #     n_idx, h, w = self.patch_location(idx)

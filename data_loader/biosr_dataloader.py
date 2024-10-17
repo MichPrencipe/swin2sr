@@ -35,13 +35,13 @@ class SplitDataset(Dataset):
             resize_to_shape: For development, we can downscale the data to fit in the meomory constraints
         """
         self.transform = transform     
-        self.mode = mode   
+        self.mode = mode 
+        self.data_type = data_type  
         
-        self.c1_data = load_data(data_type=data_type, mode = self.mode)[..., 0:1]
-        self.c2_data = load_data(data_type=data_type, mode = self.mode)[..., 1:2]
+        self.data = load_data(data_type=data_type, mode = self.mode)
         
-        self.c1_data = np.squeeze(self.c1_data, axis = -1)
-        self.c2_data = np.squeeze(self.c2_data, axis = -1)
+        self.c1_data = self.data[...,0]
+        self.c2_data = self.data[...,1]
 
         self.c1_data = np.transpose(self.c1_data, (1,2,0))
         self.c2_data = np.transpose(self.c2_data, (1,2,0))
@@ -82,8 +82,10 @@ class SplitDataset(Dataset):
         print(f"c2_data shape: {self.c2_data.shape}")
         
     def __len__(self):
-        # Use the first dimension to determine the number of images
-        return min(self.c1_data.shape[-1], self.c2_data.shape[-1])
+        nrows = self.c1_data.shape[0]//self.patch_size
+        ncols = self.c1_data.shape[1]//self.patch_size
+        nframes = min(self.c1_data.shape[-1], self.c2_data.shape[-1]) 
+        return nframes * nrows * ncols 
 
     def __getitem__(self, idx):
         n_idx, h, w = self.patch_location(idx)
@@ -132,7 +134,7 @@ class SplitDataset(Dataset):
     
     def patch_location(self, index):
         # it just ignores the index and returns a random location
-        n_idx = np.random.randint(0,len(self))
+        n_idx = np.random.randint(0,min(self.c1_data.shape[-1], self.c2_data.shape[-1]))
         h = np.random.randint(0, self.c1_data.shape[0]-self.patch_size) 
         w = np.random.randint(0, self.c1_data.shape[1]-self.patch_size)
         return (n_idx, h, w)
@@ -140,7 +142,7 @@ class SplitDataset(Dataset):
     
 
 if __name__ == '__main__':
-    dataset = SplitDataset(mode='Train', patch_size=512, data_type='biosr', noisy_data=True)
+    dataset = SplitDataset(mode='Train', patch_size=512, data_type='hagen', noisy_data=False)
     print(len(dataset))
     inp, tar = dataset[0]
     import matplotlib.pyplot as plt

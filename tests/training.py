@@ -69,7 +69,7 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
         "epochs": config.training.num_epochs,
         "size": config.data.image_size
     }
-    config_str = f"LR: {args['learning_rate']},BIOSR DATA, Noisy_data:poisson:1000,gaussian:13600" 
+    config_str = f"LR: {args['learning_rate']},HAGEN DATA, Noisy_data:False" 
        
     
     node_name = os.environ.get('SLURMD_NODENAME', socket.gethostname())  
@@ -87,7 +87,7 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
 
     early_stopping = EarlyStopping(
         monitor='val_loss',  
-        patience=500,    # How long to wait after last improvement
+        patience=6,    # How long to wait after last improvement
         #restore_best_weights=True,  # Automatically handled by PL's checkpoint system
         mode='min')
     
@@ -105,7 +105,7 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
     
     # Define the Trainer
     trainer = pl.Trainer(
-        max_epochs=1000,
+        max_epochs=10,
         logger=wandb_logger,
         log_every_n_steps=1,
         check_val_every_n_epoch=1,
@@ -170,9 +170,9 @@ if __name__ == '__main__':
     train_loader, val_loader, test_loader= create_dataset(
         config=config, 
         transform=True, 
-        noisy_data= True, 
-        noisy_factor=1000, 
-        gaus_factor=13600,
+        noisy_data= False, 
+        noisy_factor=0, 
+        gaus_factor=0,
         patch_size = 256,
     )
     create_model_and_train(config=config, 
