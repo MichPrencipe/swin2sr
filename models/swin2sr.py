@@ -84,13 +84,12 @@ class Swin2SRModule(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
-        
-        # Set up ReduceLROnPlateau scheduler
+         
         scheduler = {
             'scheduler': ReduceLROnPlateau(optimizer, mode='min', factor=.1, patience=50, min_lr=1e-6),
-            'monitor': 'val_loss',  # Metric to monitor (same as in Keras)
+            'monitor': 'val_loss',   
             'interval': 'epoch',
-            'frequency': 1  # Call the scheduler every epoch
+            'frequency': 1  
         }
         
         return {"optimizer": optimizer, "lr_scheduler": scheduler}
