@@ -31,7 +31,7 @@ def create_dataset(config, transform = True, noisy_data = False, noisy_factor = 
         torch.manual_seed(42)
         transform = Augmentations()
 
-    train_dataset = NoPatchingSplitDataset(
+    train_dataset = SplitDataset(
                               transform=transform,
                               data_type= config.data.data_type,
                               noisy_data=noisy_data,
@@ -39,7 +39,7 @@ def create_dataset(config, transform = True, noisy_data = False, noisy_factor = 
                               gaus_factor=gaus_factor,
                               patch_size=patch_size,
                               mode = 'Train')
-    val_dataset = NoPatchingSplitDataset(
+    val_dataset = SplitDataset(
                               transform=transform,
                               data_type= config.data.data_type,
                               noisy_data=noisy_data,
@@ -47,7 +47,7 @@ def create_dataset(config, transform = True, noisy_data = False, noisy_factor = 
                               gaus_factor=gaus_factor,
                               patch_size=patch_size,
                               mode = 'Val')
-    test_dataset = NoPatchingSplitDataset(
+    test_dataset =  SplitDataset(
                               transform=transform,
                               data_type= config.data.data_type,
                               noisy_data=noisy_data,
@@ -56,8 +56,8 @@ def create_dataset(config, transform = True, noisy_data = False, noisy_factor = 
                               patch_size=patch_size,
                               mode = 'Test')
 
-    train_loader = DataLoader(train_dataset, batch_size=1, shuffle=True, num_workers=4)
-    val_loader = DataLoader(val_dataset, batch_size=1, shuffle=False, num_workers=4)
+    train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True, num_workers=4)
+    val_loader = DataLoader(val_dataset, batch_size=16, shuffle=False, num_workers=4)
     test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False, num_workers=4)
     return train_loader, val_loader , test_loader
 
@@ -70,7 +70,7 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
         "epochs": config.training.num_epochs,
         "size": config.data.image_size
     }
-    config_str = f"LR: {args['learning_rate']},HAGEN DATA, Noisy_data:False"
+    config_str = f"LR: {args['learning_rate']},BIOSR DATA, Noisy_data:True, pois:0, gaus:3400"
 
 
     node_name = os.environ.get('SLURMD_NODENAME', socket.gethostname())
@@ -88,7 +88,7 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
 
     early_stopping = EarlyStopping(
         monitor='val_loss',
-        patience=6,    # How long to wait after last improvement
+        patience=20,    # How long to wait after last improvement
         #restore_best_weights=True,  # Automatically handled by PL's checkpoint system
         mode='min')
 
@@ -106,7 +106,7 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
 
     # Define the Trainer
     trainer = pl.Trainer(
-        max_epochs=10,
+        max_epochs=200,
         logger=wandb_logger,
         log_every_n_steps=1,
         check_val_every_n_epoch=1,
@@ -133,9 +133,9 @@ if __name__ == '__main__':
     train_loader, val_loader, test_loader= create_dataset(
         config=config,
         transform=True,
-        noisy_data= False,
+        noisy_data= True,
         noisy_factor=0,
-        gaus_factor=0,
+        gaus_factor=3400,
         patch_size = 256,
     )
     create_model_and_train(config=config,

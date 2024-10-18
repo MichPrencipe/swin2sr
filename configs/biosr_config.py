@@ -44,7 +44,7 @@ def get_config():
     
 
     training = config.training
-    training.lr = 1e-5
+    training.lr = 1e-4
     training.num_epochs = 400
     training.precision = 16
     
