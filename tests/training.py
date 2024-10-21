@@ -13,7 +13,8 @@ from pytorch_lightning.loggers import WandbLogger
 from models.network_swin2sr import Swin2SR
 from torch.utils.data import random_split
 from data_loader.biosr_dataset import BioSRDataLoader
-from configs.biosr_config import get_config
+#from configs.biosr_config import get_config
+from configs.hagen_config import get_config
 from models.swin2sr import Swin2SRModule
 from utils.utils import Augmentations
 from utils.utils import set_global_seed
@@ -25,7 +26,7 @@ from data_loader.biosr_no_patching import NoPatchingSplitDataset
 set_global_seed(42)
 
 
-def create_dataset(config, transform = True, noisy_data = False, noisy_factor = 0, gaus_factor = 3400, patch_size = 256):
+def create_dataset(config, transform = True, noisy_data = False, noisy_factor = 0, gaus_factor = 6800, patch_size = 256):
 
     if transform:
         torch.manual_seed(42)
@@ -65,14 +66,10 @@ def create_dataset(config, transform = True, noisy_data = False, noisy_factor = 
 def create_model_and_train(config, logger, train_loader, val_loader, logdir):
     args = {
         "learning_rate": config.training.lr,
-        "architecture": config.model.model_type,
-        "dataset": "BioSRDataset",
-        "epochs": config.training.num_epochs,
-        "size": config.data.image_size
+        "dataset": "hagen",
+        "epochs": 500,
     }
-    config_str = f"LR: {args['learning_rate']},BIOSR DATA, Noisy_data:True, pois:0, gaus:3400"
-
-
+    config_str = f"LR: {args['learning_rate']},hagen DATA, Noisy_data:False, pois:0, gaus:0,ADAMAX"
     node_name = os.environ.get('SLURMD_NODENAME', socket.gethostname())
 
     # Initialize WandbLogger with a custom run name
@@ -88,7 +85,7 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
 
     early_stopping = EarlyStopping(
         monitor='val_loss',
-        patience=20,    # How long to wait after last improvement
+        patience=200,    # How long to wait after last improvement
         #restore_best_weights=True,  # Automatically handled by PL's checkpoint system
         mode='min')
 
@@ -106,7 +103,7 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
 
     # Define the Trainer
     trainer = pl.Trainer(
-        max_epochs=200,
+        max_epochs=500,
         logger=wandb_logger,
         log_every_n_steps=1,
         check_val_every_n_epoch=1,
@@ -132,10 +129,10 @@ if __name__ == '__main__':
     config = get_config()
     train_loader, val_loader, test_loader= create_dataset(
         config=config,
-        transform=True,
-        noisy_data= True,
+        transform= True,
+        noisy_data= False,
         noisy_factor=0,
-        gaus_factor=3400,
+        gaus_factor=0,
         patch_size = 256,
     )
     create_model_and_train(config=config,

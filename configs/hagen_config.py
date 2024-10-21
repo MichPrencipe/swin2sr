@@ -8,7 +8,7 @@ from core.sampler_type import SamplerType
 def get_config():
     config = get_default_config()
     data = config.data
-    data.data_type = 'biosr'
+    data.data_type = 'hagen'
     
     loss = config.loss
     loss.loss_type = LossType.MSE
@@ -17,7 +17,7 @@ def get_config():
     model.model_type = ModelType.Swin2SR
 
     training = config.training
-    training.lr = 1e-3
+    training.lr = 0.001
     training.precision = 16
     
      

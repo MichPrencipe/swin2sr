@@ -83,7 +83,7 @@ class Swin2SRModule(pl.LightningModule):
         return val_loss
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
+        optimizer = torch.optim.Adamax(self.parameters(), lr=self.learning_rate)
          
         scheduler = {
             'scheduler': ReduceLROnPlateau(optimizer, mode='min', factor=.1, patience=50, min_lr=1e-6),
