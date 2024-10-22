@@ -6,7 +6,6 @@ from skimage.transform import resize
 import matplotlib.pyplot as plt
 
 
-    
 def load_data(data_type, mode='Train'):
     if data_type == 'biosr':
         directory = '/group/jug/ashesh/TrainValTestSplit/biosr'
@@ -15,15 +14,29 @@ def load_data(data_type, mode='Train'):
     
     if mode == 'Train':
         train = np.load(os.path.join(directory, 'train_data.npy'), allow_pickle=True)
-        return train
+        if data_type =='hagen':
+            percentile = np.percentile(train, 99.5)
+            clipped_train = np.clip(train, None, percentile)
+            return clipped_train
+        else:
+            return train
     elif mode =='Val':
         val = np.load(os.path.join(directory, 'val_data.npy'), allow_pickle=True)
-        return val
+        if data_type =='hagen':
+            clipped_train = np.clip(val, None, 1993.0)
+            return clipped_train
+        else:
+            return val
     elif mode =='Test':
         test = np.load(os.path.join(directory, 'test_data.npy'), allow_pickle=True)
-        return test
+        if data_type =='hagen':
+            clipped_train = np.clip(test, None, 1993.0)
+            return clipped_train
+        else:
+            return test
     else:
         raise ValueError('Invalid mode')
+
 
 class NoPatchingSplitDataset(Dataset):    
     """Dataset class to load images from MRC files in multiple folders."""
