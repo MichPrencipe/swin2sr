@@ -8,7 +8,7 @@ python -m pip install pre-commit
 
 # Update mamba and conda
 mamba update mamba conda -y
-
+mamba install optuna -c conda-forge -y
 # Install libraries
 mamba install timm -c conda-forge -y
 mamba install numpy -c conda-forge -y

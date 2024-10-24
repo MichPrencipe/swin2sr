@@ -13,8 +13,8 @@ from pytorch_lightning.loggers import WandbLogger
 from models.network_swin2sr import Swin2SR
 from torch.utils.data import random_split
 from data_loader.biosr_dataset import BioSRDataLoader
-#from configs.biosr_config import get_config
-from configs.hagen_config import get_config
+from configs.biosr_config import get_config
+#from configs.hagen_config import get_config
 from models.swin2sr import Swin2SRModule
 from utils.utils import Augmentations
 from utils.utils import set_global_seed
@@ -57,19 +57,19 @@ def create_dataset(config, transform = True, noisy_data = False, noisy_factor = 
                               patch_size=patch_size,
                               mode = 'Test')
 
-    train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True, num_workers=4)
-    val_loader = DataLoader(val_dataset, batch_size=16, shuffle=False, num_workers=4)
-    test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False, num_workers=4)
+    train_loader = DataLoader(train_dataset, batch_size=4, shuffle=True, num_workers=4)
+    val_loader = DataLoader(val_dataset, batch_size=4, shuffle=False, num_workers=4)
+    test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False, num_workers=4)
     return train_loader, val_loader , test_loader
 
 
 def create_model_and_train(config, logger, train_loader, val_loader, logdir):
     args = {
         "learning_rate": config.training.lr,
-        "dataset": "hagen",
-        "epochs": 500,
+        "dataset": "BiosR",
+        "epochs": 1000,
     }
-    config_str = f"LR: {args['learning_rate']},hagen DATA, Noisy_data:False, pois:0, gaus:0,ADAMAX"
+    config_str = f"LR: {args['learning_rate']},BiosR DATA, GRID SEARCH RETRAIN CONFIG"
     node_name = os.environ.get('SLURMD_NODENAME', socket.gethostname())
 
     # Initialize WandbLogger with a custom run name
@@ -103,7 +103,7 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
 
     # Define the Trainer
     trainer = pl.Trainer(
-        max_epochs=500,
+        max_epochs=600,
         logger=wandb_logger,
         log_every_n_steps=1,
         check_val_every_n_epoch=1,
@@ -130,9 +130,9 @@ if __name__ == '__main__':
     train_loader, val_loader, test_loader= create_dataset(
         config=config,
         transform= True,
-        noisy_data= False,
+        noisy_data= True,
         noisy_factor=0,
-        gaus_factor=0,
+        gaus_factor=3400,
         patch_size = 256,
     )
     create_model_and_train(config=config,

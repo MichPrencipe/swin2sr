@@ -18,14 +18,28 @@ set_global_seed(42)
 class Swin2SRModule(pl.LightningModule):
     def __init__(self, config):
         super(Swin2SRModule, self).__init__()
-        self.model = Swin2SR(
-            upscale=1, in_chans=1, img_size=(256, 256),
-            window_size=4, img_range=1., depths=[3, 3],
-            embed_dim=60, num_heads=[3, 3], mlp_ratio=2,
-            upsampler='pixelshuffledirect'
-        )
+        # self.model = Swin2SR(
+        #     upscale=1, in_chans=1, img_size=(256, 256),
+        #     window_size=4, img_range=1., depths=[3, 3],
+        #     embed_dim=60, num_heads=[3, 3], mlp_ratio=2,
+        #     upsampler='pixelshuffledirect'
+        # )
+        
+        # self.model = Swin2SR(
+        #     upscale=1, in_chans=1, img_size=(256, 256),
+        #     window_size=config['window_size'],  # Example of hyperparameter
+        #     img_range=1., depths=config['depths'],
+        #     embed_dim=config['embed_dim'], num_heads=config['num_heads'], 
+        #     mlp_ratio=2, upsampler='pixelshuffledirect'
+        # )
+        # self.criterion = nn.MSELoss()
+        # self.learning_rate = config['learning_rate']  
+        config_dict = {'upscale': 1, 'in_chans': 1, 'img_size': (256, 256), 'window_size': 8, 'img_range': 1.0, 'depths': [2, 6], 'embed_dim': 144, 'num_heads': [4, 8], 'mlp_ratio': 2.5, 'upsampler': 'pixelshuffledirect'}
+
+        self.model = Swin2SR(**config_dict)
+        
         self.criterion = nn.MSELoss()
-        self.learning_rate = config.training.lr
+        self.learning_rate = 0.00546502502076893
 
     def forward(self, x):
         return self.model(x)
