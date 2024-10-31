@@ -23,3 +23,5 @@ mamba install pytorch-lightning -c conda-forge
 mamba install ml-collections -c conda-forge
 mamba install wandb -c conda-forge
 
+mamba install optuna -c conda-forge
+

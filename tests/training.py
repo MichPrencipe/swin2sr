@@ -34,7 +34,7 @@ def create_dataset(config, transform = True, noisy_data = False, noisy_factor = 
 
     train_dataset = SplitDataset(
                               transform=transform,
-                              data_type= config.data.data_type,
+                              data_type= config['data_type'],
                               noisy_data=noisy_data,
                               noise_factor=noisy_factor,
                               gaus_factor=gaus_factor,
@@ -42,7 +42,7 @@ def create_dataset(config, transform = True, noisy_data = False, noisy_factor = 
                               mode = 'Train')
     val_dataset = SplitDataset(
                               transform=transform,
-                              data_type= config.data.data_type,
+                              data_type= config['data_type'],
                               noisy_data=noisy_data,
                               noise_factor=noisy_factor,
                               gaus_factor=gaus_factor,
@@ -50,7 +50,7 @@ def create_dataset(config, transform = True, noisy_data = False, noisy_factor = 
                               mode = 'Val')
     test_dataset =  SplitDataset(
                               transform=transform,
-                              data_type= config.data.data_type,
+                              data_type= config['data_type'],
                               noisy_data=noisy_data,
                               noise_factor=noisy_factor,
                               gaus_factor=gaus_factor,
