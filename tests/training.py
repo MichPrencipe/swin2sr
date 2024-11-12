@@ -131,8 +131,8 @@ if __name__ == '__main__':
         config=config,
         transform= True,
         noisy_data= True,
-        noisy_factor=0,
-        gaus_factor=3400,
+        noisy_factor=1000,
+        gaus_factor=13600,
         patch_size = 256,
     )
     create_model_and_train(config=config,
