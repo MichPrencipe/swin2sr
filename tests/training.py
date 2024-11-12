@@ -22,6 +22,8 @@ from pytorch_lightning.callbacks import EarlyStopping
 from pytorch_lightning.callbacks import ModelCheckpoint
 from data_loader.biosr_dataloader import SplitDataset
 from data_loader.biosr_no_patching import NoPatchingSplitDataset
+from utils.directory_setup_utils import get_workdir
+
 
 set_global_seed(42)
 
@@ -34,7 +36,7 @@ def create_dataset(config, transform = True, noisy_data = False, noisy_factor = 
 
     train_dataset = SplitDataset(
                               transform=transform,
-                              data_type= config['data_type'],
+                              data_type= config.data.data_type,
                               noisy_data=noisy_data,
                               noise_factor=noisy_factor,
                               gaus_factor=gaus_factor,
@@ -42,7 +44,7 @@ def create_dataset(config, transform = True, noisy_data = False, noisy_factor = 
                               mode = 'Train')
     val_dataset = SplitDataset(
                               transform=transform,
-                              data_type= config['data_type'],
+                              data_type= config.data.data_type,
                               noisy_data=noisy_data,
                               noise_factor=noisy_factor,
                               gaus_factor=gaus_factor,
@@ -50,7 +52,7 @@ def create_dataset(config, transform = True, noisy_data = False, noisy_factor = 
                               mode = 'Val')
     test_dataset =  SplitDataset(
                               transform=transform,
-                              data_type= config['data_type'],
+                              data_type= config.data.data_type,
                               noisy_data=noisy_data,
                               noise_factor=noisy_factor,
                               gaus_factor=gaus_factor,
@@ -63,29 +65,55 @@ def create_dataset(config, transform = True, noisy_data = False, noisy_factor = 
     return train_loader, val_loader , test_loader
 
 
-def create_model_and_train(config, logger, train_loader, val_loader, logdir):
-    args = {
-        "learning_rate": config.training.lr,
-        "dataset": "BiosR",
-        "epochs": 1000,
+def create_model_and_train(config, train_loader, val_loader):
+    
+    root_dir = "/group/jug/Michele/training/"
+    configs = {
+            'data_type': 'biosr', 
+            'learning_rate': 0.001639,
+            'upscale': 1,
+            'in_chans': 1,
+            'img_size': (256, 256),
+            'window_size': 16,  # search space for window size
+            'img_range': 1.,
+            'depths': [
+                4,3   # number of transformer blocks at stage 2
+            ],
+            'embed_dim':   144 ,  # embedding dimensions
+            'num_heads': [
+                 3,3  # number of heads for stage 1   # number of heads for stage 2
+            ],
+            'mlp_ratio':   1.5,  # MLP expansion ratio
+            'upsampler': 'pixelshuffledirect',
+            'data':{
+                'noisy_data': True,
+                'poisson_factor': 0,
+                'gaussian_factor':3400
+            }
     }
-    config_str = f"LR: {args['learning_rate']},BiosR DATA, GRID SEARCH RETRAIN CONFIG"
-    node_name = os.environ.get('SLURMD_NODENAME', socket.gethostname())
-
-    # Initialize WandbLogger with a custom run name
-    wandb_logger = WandbLogger(save_dir=logdir, project="SwinTransformer", name=f"{node_name}" + config_str)
-
-    wandb_logger.experiment.config.update(config.to_dict())
+    
+    experiment_directory, rel_path= get_workdir(configs,root_dir)
+    # save the dictionary to file
+    with open(os.path.join(experiment_directory,'config.json'), 'w') as f:
+        json.dump(configs, f)
+        
+    print('')
+    print('------------------------------------')
+    print('New Training Started... -> see:', experiment_directory)
+    print('------------------------------------')
+    config_str = f"{rel_path}"
+     
+    config_str = f"{config.data.data_type}, {rel_path}"
+    wandb_logger = WandbLogger(save_dir=experiment_directory, project="SwinTransformer", name=config_str)
+    wandb_logger.experiment.config.update(config, allow_val_change=True)
     model = Swin2SRModule(config)
-
+    print("Model parameter", model.get_parameter)
     run_id = wandb_logger.experiment.id
-
-    # Define two callback functions for early stopping and learning rate reduction
     model_filename = f'{run_id}swin2sr'
 
     early_stopping = EarlyStopping(
         monitor='val_loss',
-        patience=200,    # How long to wait after last improvement
+        patience=100,    # How long to wait after last improvement
         #restore_best_weights=True,  # Automatically handled by PL's checkpoint system
         mode='min')
 
@@ -95,7 +123,7 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
         save_top_k=1,
         save_last=True,
         mode='min',
-        dirpath='/home/michele.prencipe/tesi/transformer/swin2sr/logdir',
+        dirpath=experiment_directory,
         filename=model_filename + '_best',
     )
     checkpoint_callback.CHECKPOINT_NAME_LAST = model_filename + "_last"
@@ -103,7 +131,7 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
 
     # Define the Trainer
     trainer = pl.Trainer(
-        max_epochs=600,
+        max_epochs=1000,
         logger=wandb_logger,
         log_every_n_steps=1,
         check_val_every_n_epoch=1,
@@ -118,13 +146,12 @@ def create_model_and_train(config, logger, train_loader, val_loader, logdir):
     model_filename = f'{run_id}swin2sr'
 
     # Save model
-    saving_dir = "/home/michele.prencipe/tesi/transformer/swin2sr/logdir"
+    saving_dir = experiment_directory
     model_filepath = os.path.join(saving_dir, model_filename)
     torch.save(model.state_dict(), model_filepath)
     wandb.finish()
 
-if __name__ == '__main__':
-    logdir = 'tesi/transformer/swin2sr/logdir'
+if __name__ == '__main__': 
     wandb.login()
     config = get_config()
     train_loader, val_loader, test_loader= create_dataset(
@@ -136,7 +163,5 @@ if __name__ == '__main__':
         patch_size = 256,
     )
     create_model_and_train(config=config,
-                           logger=wandb,
                            train_loader=train_loader,
-                           val_loader=val_loader,
-                           logdir=logdir)
+                           val_loader=val_loader)

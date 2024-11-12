@@ -16,7 +16,7 @@ import json
 def objective(trial):
     try:
         config = {
-            'data_type': 'hagen',
+            'data_type': 'biosr',
             'learning_rate':  trial.suggest_float('learning_rate', 1e-4, 1e-2, log=True),
             'upscale': 1,
             'in_chans': 1,
@@ -35,16 +35,15 @@ def objective(trial):
             'mlp_ratio': trial.suggest_float('mlp_ratio', 1.5, 4.0, step=0.5),  # MLP expansion ratio
             'upsampler': 'pixelshuffledirect',
             'data':{
-                'noisy_data': False,
+                'noisy_data': True,
                 'poisson_factor': 0,
-                'gaussian_factor':0
+                'gaussian_factor':3400
             }
         }
 
         
         print(f"\nTrial {trial.number}")
         print(f"Hyperparameters: {config}\n")   
-        
         # Initialize the model with the selected hyperparameters
         root_dir = "/group/jug/Michele/training/"
         model = Swin2SRModule(config)
