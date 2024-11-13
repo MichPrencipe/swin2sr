@@ -60,6 +60,7 @@ def objective(trial):
         config_str = f"{experiment_directory}"
         
         # Optional: Use a W&B logger or any other logger for logging
+        wandb.init()
         wandb_logger = WandbLogger(save_dir=experiment_directory, project="gridsearch_tuning", name=config_str)
         wandb_logger.experiment.config.update(config, allow_val_change=True)
         model_filename = f'swin2sr'

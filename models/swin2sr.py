@@ -13,27 +13,32 @@ import torchmetrics
 from skimage.metrics import peak_signal_noise_ratio as psnr
 from core.psnr import PSNR
 from utils.utils import set_global_seed
-from torch.optim.lr_scheduler import ReduceLROnPlateau
+from torch.optim.lr_scheduler import ReduceLROnPlateau, StepLR
 set_global_seed(42)
 class Swin2SRModule(pl.LightningModule):
     def __init__(self, config):
         super(Swin2SRModule, self).__init__()
-        # self.model = Swin2SR(
-        #     upscale=1, in_chans=1, img_size=(256, 256),
-        #     window_size=4, img_range=1., depths=[3, 3],
-        #     embed_dim=60, num_heads=[3, 3], mlp_ratio=2,
-        #     upsampler='pixelshuffledirect'
-        # )
         
         self.model = Swin2SR(
             upscale=1, in_chans=1, img_size=(256, 256),
-            window_size=config['window_size'],  # Example of hyperparameter
-            img_range=1., depths=config['depths'],
-            embed_dim=config['embed_dim'], num_heads=config['num_heads'], 
-            mlp_ratio=2, upsampler='pixelshuffledirect'
+            window_size=16, img_range=1., depths=[3, 3],
+            embed_dim=60, num_heads=[3, 3], mlp_ratio=2,
+            upsampler='pixelshuffledirect'
         )
+        
+        # self.model = Swin2SR(
+        #     upscale=1, in_chans=1, img_size=(256, 256),
+        #     window_size=config['window_size'],  # Example of hyperparameter
+        #     img_range=1., depths=config['depths'],
+        #     embed_dim=config['embed_dim'], num_heads=config['num_heads'], 
+        #     mlp_ratio=2, upsampler='pixelshuffledirect'
+        # )
         self.criterion = nn.MSELoss()
-        self.learning_rate = config['learning_rate']  
+        self.learning_rate = .001 #change it to config.training.lr
+        
+        param = {"upscale": 1, "in_chans": 1, "img_size": [256, 256], "window_size": 16, "img_range": 1.0, "depths": [4, 3], "embed_dim": 144, "num_heads": [3, 3], "mlp_ratio": 1.5, "upsampler": "pixelshuffledirect"}
+        
+        
         
         # config_dict = {'upscale': 1, 'in_chans': 1, 'img_size': (256, 256), 'window_size': 16, 'img_range': 1.0, 'depths': [3, 2], 'embed_dim': 144, 'num_heads': [4, 2], 'mlp_ratio': 2.5, 'upsampler': 'pixelshuffledirect'}
         
@@ -44,9 +49,7 @@ class Swin2SRModule(pl.LightningModule):
         #                'num_heads': [3, 2], 
         #                'mlp_ratio': 2.5, 
         #                'upsampler': 'pixelshuffledirect'}
-        # self.model = Swin2SR(**config_dict)
-        # self.criterion = nn.MSELoss()
-        # self.learning_rate = 0.0003726347354883894
+        #self.model = Swin2SR(**param)
 
     def forward(self, x):
         return self.model(x)
@@ -107,12 +110,10 @@ class Swin2SRModule(pl.LightningModule):
         optimizer = torch.optim.Adamax(self.parameters(), lr=self.learning_rate)
          
         scheduler = {
-            'scheduler': ReduceLROnPlateau(optimizer, mode='min', factor=.1, patience=50, min_lr=1e-6),
-            'monitor': 'val_loss',   
-            'interval': 'epoch',
-            'frequency': 1  
-        }
-        
+                        'scheduler': StepLR(optimizer, step_size=50, gamma=0.1),
+                        'interval': 'epoch',
+                        'frequency': 1
+                    }
         return {"optimizer": optimizer, "lr_scheduler": scheduler}
 
 
