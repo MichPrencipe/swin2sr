@@ -42,7 +42,7 @@ class Swin2SRModule(pl.LightningModule):
                        'depths': [6, 4],
                        'embed_dim': 60, 
                        'num_heads': [8, 8],
-                       'mlp_ratio': 3.0,
+                       'mlp_ratio': 2.0,
                        'upsampler': 'pixelshuffledirect'}        
         
         
