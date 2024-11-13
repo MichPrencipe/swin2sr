@@ -13,8 +13,8 @@ from pytorch_lightning.loggers import WandbLogger
 from models.network_swin2sr import Swin2SR
 from torch.utils.data import random_split
 from data_loader.biosr_dataset import BioSRDataLoader
-#from configs.biosr_config import get_config
-from configs.hagen_config import get_config
+from configs.biosr_config import get_config
+#from configs.hagen_config import get_config
 from models.swin2sr import Swin2SRModule
 from utils.utils import Augmentations
 from utils.utils import set_global_seed
@@ -69,26 +69,22 @@ def create_model_and_train(config, train_loader, val_loader):
     
     root_dir = "/group/jug/Michele/training/"
     configs = {
-            'data_type': 'hagen', 
-            'learning_rate': 0.001,
+            'data_type': 'biosr', 
+            'learning_rate': 0.00359,
             'upscale': 1,
             'in_chans': 1,
             'img_size': (256, 256),
             'window_size': 16,  # search space for window size
-            'img_range': 1.,
-            'depths': [
-                3,3   # number of transformer blocks at stage 2
-            ],
+            'img_range': 1.0,
+            'depths': [6,4],   # number of transformer blocks at stage 2
             'embed_dim':   60 ,  # embedding dimensions
-            'num_heads': [
-                 3,3  # number of heads for stage 1   # number of heads for stage 2
-            ],
-            'mlp_ratio':   2,  # MLP expansion ratio
+            'num_heads': [8,8], # number of heads for stage 1   # number of heads for stage 2,
+            'mlp_ratio':   3,  # MLP expansion ratio
             'upsampler': 'pixelshuffledirect',
             'data':{
-                'noisy_data': False,
+                'noisy_data': True,
                 'poisson_factor': 0,
-                'gaussian_factor': 0
+                'gaussian_factor': 3400
             }
     }
     
@@ -106,7 +102,6 @@ def create_model_and_train(config, train_loader, val_loader):
     config_str = f"{rel_path}"
      
     config_str = f"{config.data.data_type}, {rel_path}"
-    wandb.init()
     wandb_logger = WandbLogger(save_dir=experiment_directory, project="SwinTransformer", name=config_str)
     wandb_logger.experiment.config.update(config, allow_val_change=True)
     model = Swin2SRModule(config)
@@ -146,7 +141,7 @@ def create_model_and_train(config, train_loader, val_loader):
     trainer.fit(model, train_loader, val_loader)
 
 
-    model_filename = f'swin2sr'
+    model_filename = f'{run_id}swin2sr'
 
     # Save model
     saving_dir = experiment_directory
@@ -160,8 +155,8 @@ if __name__ == '__main__':
     train_loader, val_loader, test_loader= create_dataset(
         config=config,
         transform= True,
-        noisy_data= False,
-        noisy_factor= 0,
+        noisy_data= True,
+        noisy_factor= 3400,
         gaus_factor= 0,
         patch_size = 256,
     )

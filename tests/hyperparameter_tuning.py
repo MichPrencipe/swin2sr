@@ -16,7 +16,7 @@ import json
 def objective(trial):
     try:
         config = {
-            'data_type': 'hagen',
+            'data_type': 'biosr',
             'learning_rate':  trial.suggest_float('learning_rate', 1e-4, 1e-2, log=True),
             'upscale': 1,
             'in_chans': 1,

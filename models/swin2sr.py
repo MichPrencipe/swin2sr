@@ -17,14 +17,13 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau, StepLR
 set_global_seed(42)
 class Swin2SRModule(pl.LightningModule):
     def __init__(self, config):
-        super(Swin2SRModule, self).__init__()
-        
-        self.model = Swin2SR(
-            upscale=1, in_chans=1, img_size=(256, 256),
-            window_size=16, img_range=1., depths=[3, 3],
-            embed_dim=60, num_heads=[3, 3], mlp_ratio=2,
-            upsampler='pixelshuffledirect'
-        )
+        super(Swin2SRModule, self).__init__()        
+        # self.model = Swin2SR(
+        #     upscale=1, in_chans=1, img_size=(256, 256),
+        #     window_size=16, img_range=1., depths=[3, 3],
+        #     embed_dim=60, num_heads=[3, 3], mlp_ratio=2,
+        #     upsampler='pixelshuffledirect'
+        # )
         
         # self.model = Swin2SR(
         #     upscale=1, in_chans=1, img_size=(256, 256),
@@ -33,23 +32,23 @@ class Swin2SRModule(pl.LightningModule):
         #     embed_dim=config['embed_dim'], num_heads=config['num_heads'], 
         #     mlp_ratio=2, upsampler='pixelshuffledirect'
         # )
+              
+        
+        config_dict = {'upscale': 1,
+                       'in_chans': 1,
+                       'img_size': (256, 256),
+                       'window_size': 16, 
+                       'img_range': 1.0, 
+                       'depths': [6, 4],
+                       'embed_dim': 60, 
+                       'num_heads': [8, 8],
+                       'mlp_ratio': 3.0,
+                       'upsampler': 'pixelshuffledirect'}        
+        
+        
+        self.model = Swin2SR(**config_dict)
         self.criterion = nn.MSELoss()
-        self.learning_rate = .001 #change it to config.training.lr
-        
-        param = {"upscale": 1, "in_chans": 1, "img_size": [256, 256], "window_size": 16, "img_range": 1.0, "depths": [4, 3], "embed_dim": 144, "num_heads": [3, 3], "mlp_ratio": 1.5, "upsampler": "pixelshuffledirect"}
-        
-        
-        
-        # config_dict = {'upscale': 1, 'in_chans': 1, 'img_size': (256, 256), 'window_size': 16, 'img_range': 1.0, 'depths': [3, 2], 'embed_dim': 144, 'num_heads': [4, 2], 'mlp_ratio': 2.5, 'upsampler': 'pixelshuffledirect'}
-        
-        # config_dict = {'upscale': 1, 'in_chans': 1,
-        #                'img_size': (256, 256),
-        #                'window_size': 16, 'img_range': 1.0, 
-        #                'depths': [4, 4], 'embed_dim': 60,
-        #                'num_heads': [3, 2], 
-        #                'mlp_ratio': 2.5, 
-        #                'upsampler': 'pixelshuffledirect'}
-        #self.model = Swin2SR(**param)
+        self.learning_rate = .00359 #change it to config.training.lr
 
     def forward(self, x):
         return self.model(x)
