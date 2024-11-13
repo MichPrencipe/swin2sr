@@ -25,30 +25,30 @@ class Swin2SRModule(pl.LightningModule):
         #     upsampler='pixelshuffledirect'
         # )
         
-        # self.model = Swin2SR(
-        #     upscale=1, in_chans=1, img_size=(256, 256),
-        #     window_size=config['window_size'],  # Example of hyperparameter
-        #     img_range=1., depths=config['depths'],
-        #     embed_dim=config['embed_dim'], num_heads=config['num_heads'], 
-        #     mlp_ratio=2, upsampler='pixelshuffledirect'
-        # )
+        self.model = Swin2SR(
+            upscale=1, in_chans=1, img_size=(256, 256),
+            window_size=config['window_size'],  # Example of hyperparameter
+            img_range=1., depths=config['depths'],
+            embed_dim=config['embed_dim'], num_heads=config['num_heads'], 
+            mlp_ratio=config['mlp_ratio'], upsampler='pixelshuffledirect'
+        )
               
         
-        config_dict = {'upscale': 1,
-                       'in_chans': 1,
-                       'img_size': (256, 256),
-                       'window_size': 16, 
-                       'img_range': 1.0, 
-                       'depths': [6, 4],
-                       'embed_dim': 60, 
-                       'num_heads': [8, 8],
-                       'mlp_ratio': 2.0,
-                       'upsampler': 'pixelshuffledirect'}        
+        # config_dict = {'upscale': 1,
+        #                'in_chans': 1,
+        #                'img_size': (256, 256),
+        #                'window_size': 16, 
+        #                'img_range': 1.0, 
+        #                'depths': [6, 4],
+        #                'embed_dim': 96, 
+        #                'num_heads': [8, 8],
+        #                'mlp_ratio': 4.0,
+        #                'upsampler': 'pixelshuffledirect'}        
         
         
-        self.model = Swin2SR(**config_dict)
+        # self.model = Swin2SR(**config_dict)
         self.criterion = nn.MSELoss()
-        self.learning_rate = .00359 #change it to config.training.lr
+        self.learning_rate = config['learning_rate'] #change it to config.training.lr
 
     def forward(self, x):
         return self.model(x)

@@ -35,9 +35,9 @@ def objective(trial):
             'mlp_ratio': trial.suggest_float('mlp_ratio', 1.5, 4.0, step=0.5),  # MLP expansion ratio
             'upsampler': 'pixelshuffledirect',
             'data':{
-                'noisy_data': False,
+                'noisy_data': True,
                 'poisson_factor': 0,
-                'gaussian_factor':0
+                'gaussian_factor': 3400
             }
         }
 

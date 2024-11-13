@@ -36,7 +36,7 @@ def create_dataset(config, transform = True, noisy_data = False, noisy_factor = 
 
     train_dataset = SplitDataset(
                               transform=transform,
-                              data_type= config.data.data_type,
+                              data_type= config['data_type'],
                               noisy_data=noisy_data,
                               noise_factor=noisy_factor,
                               gaus_factor=gaus_factor,
@@ -44,7 +44,7 @@ def create_dataset(config, transform = True, noisy_data = False, noisy_factor = 
                               mode = 'Train')
     val_dataset = SplitDataset(
                               transform=transform,
-                              data_type= config.data.data_type,
+                              data_type= config['data_type'],
                               noisy_data=noisy_data,
                               noise_factor=noisy_factor,
                               gaus_factor=gaus_factor,
@@ -52,7 +52,7 @@ def create_dataset(config, transform = True, noisy_data = False, noisy_factor = 
                               mode = 'Val')
     test_dataset =  SplitDataset(
                               transform=transform,
-                              data_type= config.data.data_type,
+                              data_type= config['data_type'],
                               noisy_data=noisy_data,
                               noise_factor=noisy_factor,
                               gaus_factor=gaus_factor,
@@ -141,7 +141,7 @@ def create_model_and_train(config, train_loader, val_loader):
     trainer.fit(model, train_loader, val_loader)
 
 
-    model_filename = f'{run_id}swin2sr'
+    model_filename = f'swin2sr'
 
     # Save model
     saving_dir = experiment_directory
