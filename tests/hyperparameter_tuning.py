@@ -17,7 +17,7 @@ def objective(trial):
     try:
         config = {
             'data_type': 'biosr',
-            'learning_rate':  trial.suggest_float('learning_rate', 1e-4, 1e-2, log=True),
+            'learning_rate':  trial.suggest_float('learning_rate', 1e-3, 1e-2, log=True),
             'upscale': 1,
             'in_chans': 1,
             'img_size': (256, 256),
@@ -37,7 +37,7 @@ def objective(trial):
             'data':{
                 'noisy_data': True,
                 'poisson_factor': 0,
-                'gaussian_factor': 3400
+                'gaussian_factor':3400
             }
         }
 
@@ -60,7 +60,6 @@ def objective(trial):
         config_str = f"{experiment_directory}"
         
         # Optional: Use a W&B logger or any other logger for logging
-        wandb.init()
         wandb_logger = WandbLogger(save_dir=experiment_directory, project="gridsearch_tuning", name=config_str)
         wandb_logger.experiment.config.update(config, allow_val_change=True)
         model_filename = f'swin2sr'
