@@ -36,8 +36,8 @@ def objective(trial):
             'upsampler': 'pixelshuffledirect',
             'data':{
                 'noisy_data': True,
-                'poisson_factor': 0,
-                'gaussian_factor':3400
+                'poisson_factor': 1000,
+                'gaussian_factor':6800
             }
         }
 
@@ -133,7 +133,19 @@ class TqdmCallback(object):
         self.pbar.update(1)
 
 if __name__ == '__main__': 
-    study = optuna.create_study(direction="minimize") 
+    
+    # Define the best-known parameters (default benchmark setup)
+    best_params = {
+        'learning_rate': 0.001,
+        'window_size': 16,
+        'depths':[3,3], 
+        'embed_dim': 60,
+        'num_heads': [3,3],
+        'mlp_ratio': 2.0,
+    }
+    study = optuna.create_study(direction="minimize")     
+    # Enqueue the best-known parameters
+    study.enqueue_trial(best_params)
     study.optimize(objective, n_trials=500, callbacks=[TqdmCallback(500)])
     print("Best hyperparameters: ", study.best_params)
 

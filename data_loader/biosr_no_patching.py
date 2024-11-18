@@ -40,7 +40,7 @@ def load_data(data_type, mode='Train'):
 
 class NoPatchingSplitDataset(Dataset):    
     """Dataset class to load images from MRC files in multiple folders."""
-    def __init__(self, patch_size=64, data_type='biosr', transform=None, noisy_data = False, noise_factor = 1000, gaus_factor = 2000, mode = 'Test'): #TODO
+    def __init__(self, patch_size=64, data_type='biosr', transform=None, noisy_data = False, poisson_factor = 1000, gaus_factor = 2000, mode = 'Test'): #TODO
         """
         Args:
             root_dir (string): Root directory containing subdirectories of MRC files.
@@ -60,17 +60,17 @@ class NoPatchingSplitDataset(Dataset):
         
         self.patch_size = patch_size
         self.noisy_data = noisy_data
-        self.noise_factor = noise_factor   
+        self.poisson_factor = poisson_factor   
         self.gaus_factor = gaus_factor           
              
         
         if self.noisy_data: 
-            if self.noise_factor == 0:
+            if self.poisson_factor == 0:
                 self.poisson_noise_channel_1 = self.c1_data
                 self.poisson_noise_channel_2 = self.c2_data
             else: 
-                self.poisson_noise_channel_1 = np.random.poisson(self.c1_data / self.noise_factor) * self.noise_factor
-                self.poisson_noise_channel_2= np.random.poisson(self.c2_data / self.noise_factor) * self.noise_factor
+                self.poisson_noise_channel_1 = np.random.poisson(self.c1_data / self.poisson_factor) * self.poisson_factor
+                self.poisson_noise_channel_2= np.random.poisson(self.c2_data / self.poisson_factor) * self.poisson_factor
                 
             self.gaussian_noise_channel_1= np.random.normal(0,self.gaus_factor, (self.poisson_noise_channel_1.shape))            
             self.gaussian_noise_channel_2 = np.random.normal(0,self.gaus_factor, (self.poisson_noise_channel_2.shape))

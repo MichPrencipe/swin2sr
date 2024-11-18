@@ -24,7 +24,7 @@ def get_new_model_version(model_dir: str) -> str:
 
 def get_model_name(config):
     # dtype = config["datasets"]["train"]["name"]
-    dtype = config['data_type']
+    dtype = config.data.data_type
     return f'{dtype}'
 
 

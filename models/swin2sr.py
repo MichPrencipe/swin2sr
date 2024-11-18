@@ -26,13 +26,20 @@ class Swin2SRModule(pl.LightningModule):
         # )
         
         self.model = Swin2SR(
-            upscale=1, in_chans=1, img_size=(256, 256),
-            window_size=config['window_size'],  # Example of hyperparameter
-            img_range=1., depths=config['depths'],
-            embed_dim=config['embed_dim'], num_heads=config['num_heads'], 
-            mlp_ratio=config['mlp_ratio'], upsampler='pixelshuffledirect'
+            upscale=config.model.upscale, 
+            in_chans = config.model.in_chans,
+            img_size=config.model.img_size,
+            window_size=config.model.window_size, 
+            img_range=config.model.img_range, 
+            depths=config.model.depths,
+            embed_dim=config.model.embed_dim, 
+            num_heads=config.model.num_heads,
+            mlp_ratio=config.model.mlp_ratio,
+            upsampler=config.model.upsampler,
+            patch_size=config.model.patch_size
         )
-              
+        
+        print(config)
         
         # config_dict = {'upscale': 1,
         #                'in_chans': 1,
@@ -48,7 +55,7 @@ class Swin2SRModule(pl.LightningModule):
         
         # self.model = Swin2SR(**config_dict)
         self.criterion = nn.MSELoss()
-        self.learning_rate = config['learning_rate'] #change it to config.training.lr
+        self.learning_rate = config.training.lr #change it to config.training.lr
 
     def forward(self, x):
         return self.model(x)
