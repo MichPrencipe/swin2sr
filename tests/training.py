@@ -26,29 +26,31 @@ def create_dataset(config, transform = True, patch_size = 256):
     if transform:
         torch.manual_seed(42)
         transform = Augmentations()
-    print(config.data.noisy,config.data.poisson_factor,config.data.gaussian_factor)
+    print("NOISY:", config['data']['noisy'])
+    print("POISSON",config['data']['poisson_factor'])
+    print("GAUSSIAN:", config['data']['gaussian_factor'])
     train_dataset = SplitDataset(
                               transform=transform,
-                              data_type= config.data.data_type,
-                              noisy_data=config.data.noisy,
-                              poisson_factor=config.data.poisson_factor,
-                              gaus_factor = config.data.gaussian_factor,
+                              data_type= config['data']['data_type'],
+                              noisy_data=config['data']['noisy'],
+                              poisson_factor=config['data']['poisson_factor'],
+                              gaus_factor = config['data']['gaussian_factor'],
                               patch_size=patch_size,
                               mode = 'Train')
     val_dataset = SplitDataset(
                               transform=transform,
-                              data_type= config.data.data_type,
-                              noisy_data=config.data.noisy,
-                              poisson_factor=config.data.poisson_factor,
-                              gaus_factor = config.data.gaussian_factor,
+                              data_type= config['data']['data_type'],
+                              noisy_data=config['data']['noisy'],
+                              poisson_factor=config['data']['poisson_factor'],
+                              gaus_factor = config['data']['gaussian_factor'],
                               patch_size=patch_size,
                               mode = 'Val')
     test_dataset =  SplitDataset(
                               transform=transform,
-                              data_type= config.data.data_type,
-                              noisy_data=config.data.noisy,
-                              poisson_factor=config.data.poisson_factor,
-                              gaus_factor = config.data.gaussian_factor,
+                              data_type= config['data']['data_type'],
+                              noisy_data=config['data']['noisy'],
+                              poisson_factor=config['data']['poisson_factor'],
+                              gaus_factor = config['data']['gaussian_factor'],
                               patch_size=patch_size,
                               mode = 'Test')
 
