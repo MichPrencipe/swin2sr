@@ -11,8 +11,8 @@ def get_config():
     config = get_default_config()
     
     configs  = {
-    "data_type": "hagen",    
-    "data": {'noisy_data': False, 'poisson_factor': 0, 'gaussian_factor': 3400},
+    "data_type": "biosr",    
+    "data": {'noisy_data': True, 'poisson_factor': 0, 'gaussian_factor': 3400},
     "data_shape": (5,1004,1004),
     "learning_rate": 0.001,
     "upscale": 1,
