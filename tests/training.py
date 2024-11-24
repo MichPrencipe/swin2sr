@@ -7,6 +7,7 @@ import yaml
 import socket
 import json
 import matplotlib.pyplot as plt
+import argparse
 
 from torch.utils.data import DataLoader
 from pytorch_lightning.loggers import WandbLogger
@@ -60,9 +61,8 @@ def create_dataset(config, transform = True, patch_size = 256):
     return train_loader, val_loader , test_loader
 
 
-def create_model_and_train(config, train_loader, val_loader):
+def create_model_and_train(config, train_loader, val_loader, root_dir = "/group/jug/Michele/training/", wandb_project = "SwinTransformer"):
     
-    root_dir = "/group/jug/Michele/training/"
     #configs =  {'data_type': 'biosr', 'learning_rate': 0.0014315884438198256, 'upscale': 1, 'in_chans': 1, 'img_size': (256, 256), 'window_size': 8, 'img_range': 1.0, 'depths': [4, 3], 'embed_dim': 60, 'num_heads': [3, 4], 'mlp_ratio': 3.5, 'upsampler': 'pixelshuffledirect', 'data': {'noisy_data': True, 'poisson_factor': 1000, 'gaussian_factor': 3400}}
 
     experiment_directory, rel_path= get_workdir(config, root_dir)
@@ -76,7 +76,7 @@ def create_model_and_train(config, train_loader, val_loader):
     config_str = f"{rel_path}"
      
     config_str = f"{config.data.data_type}, {rel_path}"
-    wandb_logger = WandbLogger(save_dir=experiment_directory, project="SwinTransformer", name=config_str)
+    wandb_logger = WandbLogger(save_dir=experiment_directory, project=wandb_project, name=config_str)
     wandb_logger.experiment.config.update(config, allow_val_change=True)
     model = Swin2SRModule(config)
     print("Model parameter", model.get_parameter)
@@ -122,6 +122,10 @@ def create_model_and_train(config, train_loader, val_loader):
     wandb.finish()
 
 if __name__ == '__main__': 
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--root_dir', type=str, default="/group/jug/Michele/training/")
+    parser.add_argument('--wandb_project', type=str, default="SwinTransformer")
+    args = parser.parse_args()
     wandb.login()
     config = get_config()
     train_loader, val_loader, test_loader= create_dataset(
@@ -131,4 +135,7 @@ if __name__ == '__main__':
     )
     create_model_and_train(config=config,
                            train_loader=train_loader,
-                           val_loader=val_loader)
+                           val_loader=val_loader,
+                           root_dir=args.root_dir,
+                           wandb_project=args.wandb_project
+                           )
