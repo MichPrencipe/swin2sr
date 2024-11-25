@@ -100,10 +100,7 @@ class Swin2SRModule(pl.LightningModule):
         
         psnr_arr = { 0: [] , 1: []}
         for ch_idx in range(outputs.shape[1]):
-            if ch_idx == 0:
-                data_range = targets[:, ch_idx].max() -  targets[:,ch_idx].min() 
-            else:
-                data_range = targets[:, ch_idx].max() -  targets[:, ch_idx].min()
+            data_range = targets[:, ch_idx].max() -  targets[:,ch_idx].min()
             psnr_arr[ch_idx].append(PSNR(targets[:, ch_idx], outputs[:, ch_idx], range_= data_range))        
         
                 

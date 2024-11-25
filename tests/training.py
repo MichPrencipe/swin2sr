@@ -18,7 +18,16 @@ from pytorch_lightning.callbacks import EarlyStopping
 from pytorch_lightning.callbacks import ModelCheckpoint
 from data_loader.biosr_dataloader import SplitDataset
 from utils.directory_setup_utils import get_workdir
+import git
 
+def add_git_info(config):
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    repo = git.Repo(dir_path, search_parent_directories=True)
+    config['git'] = {}
+    config['git']['changedFiles'] = [item.a_path for item in repo.index.diff(None)]
+    config['git']['branch'] = repo.active_branch.name
+    config['git']['untracked_files'] = repo.untracked_files
+    config['git']['latest_commit'] = repo.head.object.hexsha
 
 set_global_seed(42)
 
@@ -54,9 +63,9 @@ def create_dataset(config, transform = True, patch_size = 256):
                               patch_size=patch_size,
                               mode = 'Test')
 
-    train_loader = DataLoader(train_dataset, batch_size=1, shuffle=True, num_workers=4)
-    val_loader = DataLoader(val_dataset, batch_size=1, shuffle=False, num_workers=4)
-    test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False, num_workers=4)
+    train_loader = DataLoader(train_dataset, batch_size=config['training']['batch_size'], shuffle=True, num_workers=4)
+    val_loader = DataLoader(val_dataset, batch_size=config['training']['batch_size'], shuffle=False, num_workers=4)
+    test_loader = DataLoader(test_dataset, batch_size=config['training']['batch_size'], shuffle=False, num_workers=4)
     return train_loader, val_loader , test_loader
 
 
@@ -66,7 +75,7 @@ def create_model_and_train(config, train_loader, val_loader):
     #configs =  {'data_type': 'biosr', 'learning_rate': 0.0014315884438198256, 'upscale': 1, 'in_chans': 1, 'img_size': (256, 256), 'window_size': 8, 'img_range': 1.0, 'depths': [4, 3], 'embed_dim': 60, 'num_heads': [3, 4], 'mlp_ratio': 3.5, 'upsampler': 'pixelshuffledirect', 'data': {'noisy_data': True, 'poisson_factor': 1000, 'gaussian_factor': 3400}}
 
     experiment_directory, rel_path= get_workdir(config, root_dir)
-    
+    add_git_info(config)
     save_config_to_json(config, experiment_directory)
         
     print('')
@@ -79,7 +88,6 @@ def create_model_and_train(config, train_loader, val_loader):
     wandb_logger = WandbLogger(save_dir=experiment_directory, project="SwinTransformer", name=config_str)
     wandb_logger.experiment.config.update(config, allow_val_change=True)
     model = Swin2SRModule(config)
-    print("Model parameter", model.get_parameter)
     model_filename = f'swin2sr'
 
     early_stopping = EarlyStopping(

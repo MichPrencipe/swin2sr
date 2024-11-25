@@ -12,9 +12,10 @@ def get_config():
     
     configs  = {
     "data_type": "biosr",    
-    "data": {'noisy_data': True, 'poisson_factor': 0, 'gaussian_factor': 3400},
+    "data": {'noisy_data': True, 'poisson_factor': 3000, 'gaussian_factor': 3400},
     "data_shape": (5,1004,1004),
-    "learning_rate": 0.001,
+    "learning_rate": 0.001,    
+    "batch_size":1,
     "upscale": 1,
     "in_chans": 1,
     "patch_size": 1,
@@ -25,8 +26,7 @@ def get_config():
     "embed_dim": 60,
     "num_heads": [6, 6, 6, 6],
     "mlp_ratio": 2,
-    "upsampler": "pixelshuffledirect",
-    
+    "upsampler": "pixelshuffledirect"
     }
     data = config.data
     data.data_type = configs['data_type']
@@ -55,6 +55,7 @@ def get_config():
     training = config.training
     training.lr = configs["learning_rate"]
     training.precision = 16
+    training.batch_size = configs['batch_size']
      
     return config
 
