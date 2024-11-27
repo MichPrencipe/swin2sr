@@ -1,21 +1,19 @@
 import os
 
 from configs.default_config import get_default_config
-from core.data_type import DataType
 from core.loss_type import LossType
 from core.model_type import ModelType
-from core.sampler_type import SamplerType
 
 
 def get_config():
     config = get_default_config()
     
     configs  = {
-    "data_type": "biosr",    
-    "data": {'noisy_data': True, 'poisson_factor': 3000, 'gaussian_factor': 3400},
-    "data_shape": (5,1004,1004),
+    "data_type": "hagen",    
+    "data": {'noisy_data': False, 'poisson_factor': 0, 'gaussian_factor': 0},
+    "data_shape": (10,2048,2048),
     "learning_rate": 0.001,    
-    "batch_size":1,
+    "batch_size":4,
     "upscale": 1,
     "in_chans": 1,
     "patch_size": 1,

@@ -17,7 +17,7 @@ from utils.utils import Augmentations
 from utils.utils import set_global_seed
 from pytorch_lightning.callbacks import EarlyStopping
 from pytorch_lightning.callbacks import ModelCheckpoint
-from data_loader.biosr_dataloader import SplitDataset
+from data_loader.dataloader import SplitDataset
 from utils.directory_setup_utils import get_workdir
 import git
 

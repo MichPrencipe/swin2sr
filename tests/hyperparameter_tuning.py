@@ -8,7 +8,7 @@ from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import WandbLogger
 from models.swin2sr import Swin2SRModule
 from training import create_dataset
-from configs.biosr_config import get_config
+from configs.config import get_config
 from pytorch_lightning.callbacks import ModelCheckpoint
 from utils.directory_setup_utils import get_workdir
 from pytorch_lightning.callbacks import EarlyStopping
@@ -16,30 +16,51 @@ import json
 def objective(trial):
     try:
         config = {
-            'data_type': 'biosr',
-            'learning_rate':  trial.suggest_float('learning_rate', 1e-3, 1e-2, log=True),
-            'upscale': 1,
-            'in_chans': 1,
-            'img_size': (256, 256),
-            'window_size': trial.suggest_categorical('window_size', [4, 8, 16]),  # search space for window size
-            'img_range': 1.,
-            'depths': [
-                trial.suggest_categorical('depth_stage_1', [2,3,4,6]),  # number of transformer blocks at stage 1
-                trial.suggest_categorical('depth_stage_2',[2,3,4,6])   # number of transformer blocks at stage 2
-            ],
-            'embed_dim': trial.suggest_categorical('embed_dim', [60, 96, 120, 144]),  # embedding dimensions
-            'num_heads': [
-                trial.suggest_categorical('num_heads_stage_1', [2,3,4,6,8]),  # number of heads for stage 1
-                trial.suggest_categorical('num_heads_stage_2', [2,3,4,6,8])   # number of heads for stage 2
-            ],
-            'mlp_ratio': trial.suggest_float('mlp_ratio', 1.5, 4.0, step=0.5),  # MLP expansion ratio
-            'upsampler': 'pixelshuffledirect',
-            'data':{
-                'noisy_data': True,
-                'poisson_factor': 1000,
-                'gaussian_factor':6800
-            }
-        }
+    'model': {
+        'upscale': 1,
+        'in_chans': 1,
+        'img_size': (256, 256),
+        'window_size': trial.suggest_categorical('window_size', [4, 8, 16]),
+        'img_range': 1.0,
+        'depths': [
+            trial.suggest_categorical('depth_stage_1', [2, 3, 4, 6, 10]),
+            trial.suggest_categorical('depth_stage_2', [2, 3, 4, 6, 10]),
+            trial.suggest_categorical('depth_stage_3', [2, 3, 4, 6, 10]),
+            trial.suggest_categorical('depth_stage_4', [2, 3, 4, 6, 10]),
+            trial.suggest_categorical('depth_stage_5', [2, 3, 4, 6, 10]),
+            trial.suggest_categorical('depth_stage_6', [2, 3, 4, 6, 10]),
+            trial.suggest_categorical('depth_stage_7', [2, 3, 4, 6, 10]),
+            trial.suggest_categorical('depth_stage_8', [2, 3, 4, 6, 10]),
+        ],
+        'embed_dim': trial.suggest_categorical('embed_dim', [60, 96, 120, 144]),
+        'num_heads': [
+            trial.suggest_categorical('num_heads_stage_1', [2, 3, 4, 6, 8]),
+            trial.suggest_categorical('num_heads_stage_2', [2, 3, 4, 6, 8]),
+            trial.suggest_categorical('num_heads_stage_3', [2, 3, 4, 6, 8]),
+            trial.suggest_categorical('num_heads_stage_4', [2, 3, 4, 6, 8]),
+            trial.suggest_categorical('num_heads_stage_5', [2, 3, 4, 6, 8]),
+            trial.suggest_categorical('num_heads_stage_6', [2, 3, 4, 6, 8]),
+            trial.suggest_categorical('num_heads_stage_7', [2, 3, 4, 6, 8]),
+            trial.suggest_categorical('num_heads_stage_8', [2, 3, 4, 6, 8]),
+            trial.suggest_categorical('num_heads_stage_9', [2, 3, 4, 6, 8]),
+            trial.suggest_categorical('num_heads_stage_10', [2, 3, 4, 6, 8]),
+        ],
+        'mlp_ratio': trial.suggest_float('mlp_ratio', 1.5, 4.0, step=0.5),
+        'upsampler': 'pixelshuffledirect',
+        'patch_size': 1,
+    },
+    'data': {
+        'data_type': 'biosr',
+        'noisy_data': True,
+        'poisson_factor': 0,
+        'gaussian_factor': 3400,
+    },
+    'batch_size': trial.suggest_categorical('batch_size', [1, 2, 4, 6, 8]),
+    'training':{
+        'lr':
+        trial.suggest_float('learning_rate', 1e-3, 1e-2, log=True)
+    }
+}
 
         
         print(f"\nTrial {trial.number}")
@@ -95,9 +116,6 @@ def objective(trial):
         
         train_loader, val_loader, _ = create_dataset(config, 
                     transform=True, 
-                    noisy_data=config['data']['noisy_data'],
-                    noisy_factor= config['data']['poisson_factor'],
-                    gaus_factor=config['data']['gaussian_factor'],
                     patch_size=256)
 
         # Perform training
@@ -133,16 +151,22 @@ class TqdmCallback(object):
         self.pbar.update(1)
 
 if __name__ == '__main__': 
-    
+    config = get_config()
     # Define the best-known parameters (default benchmark setup)
     best_params = {
-        'learning_rate': 0.001,
-        'window_size': 16,
-        'depths':[3,3], 
-        'embed_dim': 60,
-        'num_heads': [3,3],
-        'mlp_ratio': 2.0,
+    'upscale': 1,
+    'in_chans': config['model']['in_chans'],
+    'img_size': config['model']['img_size'],
+    'window_size': config['model']['window_size'],
+    'img_range': config['model']['img_range'],
+    'depths': config['model']['depths'],
+    'embed_dim': config['model']['embed_dim'],
+    'num_heads': config['model']['num_heads'],
+    'mlp_ratio': config['model']['mlp_ratio'],
+    'upsampler': config['model']['upsampler'],
+    'patch_size': config['model']['patch_size'],
     }
+
     study = optuna.create_study(direction="minimize")     
     # Enqueue the best-known parameters
     study.enqueue_trial(best_params)
