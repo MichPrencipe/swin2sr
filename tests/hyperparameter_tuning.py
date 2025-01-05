@@ -51,14 +51,14 @@ def objective(trial):
     },
     'data': {
         'data_type': 'biosr',
-        'noisy_data': True,
+        'noisy': True,
         'poisson_factor': 0,
         'gaussian_factor': 3400,
     },
-    'batch_size': trial.suggest_categorical('batch_size', [1, 2, 4, 6, 8]),
+    
     'training':{
-        'lr':
-        trial.suggest_float('learning_rate', 1e-3, 1e-2, log=True)
+        'batch_size': trial.suggest_categorical('batch_size', [1, 2, 4, 6, 8]),
+        'lr':trial.suggest_float('learning_rate', 1e-3, 1e-2, log=True)
     }
 }
 

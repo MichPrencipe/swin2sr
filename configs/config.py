@@ -9,16 +9,16 @@ def get_config():
     config = get_default_config()
     
     configs  = {
-    "data_type": "hagen",    
-    "data": {'noisy_data': False, 'poisson_factor': 0, 'gaussian_factor': 0},
-    "data_shape": (10,2048,2048),
+    "data_type": "biosr",    
+    "data": {'noisy_data': True, 'poisson_factor': 0, 'gaussian_factor': 3400},
+    "data_shape": (5,1004,10004),
     "learning_rate": 0.001,    
-    "batch_size":4,
+    "batch_size":2,
     "upscale": 1,
     "in_chans": 1,
     "patch_size": 1,
     "img_size": (256, 256),
-    "window_size": 16,
+    "window_size": 8,
     "img_range": 1.0,
     "depths":  [6, 6, 6, 6], 
     "embed_dim": 60,
